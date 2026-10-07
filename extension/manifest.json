@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Worklogger SDP Cookie Sync",
+  "version": "1.0",
+  "description": "Automatically extracts and syncs SDP cookies to your local Worklogger application.",
+  "permissions": [
+    "cookies",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://servicedeskplus.smretailinc.com/*",
+    "http://localhost/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Sync Worklogger"
+  }
+}
