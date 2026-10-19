@@ -30,8 +30,8 @@
   --violet-400: #da8fff;
 
   --text-primary: #ffffff;
-  --text-secondary: rgba(235, 235, 245, 0.65);
-  --text-muted: rgba(235, 235, 245, 0.40);
+  --text-secondary: rgba(235, 235, 245, 0.78);
+  --text-muted: rgba(235, 235, 245, 0.55);
 
   --bg-card: rgba(28, 28, 30, 0.72);
   --border-card: rgba(255, 255, 255, 0.10);
@@ -55,35 +55,35 @@
   --surface-700: #e5e5ea;
   --surface-600: #d1d1d6;
   --surface-500: #c7c7cc;
-  --surface-400: #aeaeb2;
-  --surface-300: #8e8e93;
+  --surface-400: #9c9ca1;
+  --surface-300: #6e6e73;
 
-  /* Apple System Light Accents */
-  --accent-500: #007aff;
-  --accent-400: #0071e3;
-  --accent-300: #409cff;
-  --accent-600: #0062cc;
-  --accent-700: #004fb0;
+  /* Apple System Light Accents - Calibrated for high contrast readability */
+  --accent-500: #0071e3;
+  --accent-400: #0077ed;
+  --accent-300: #005bb5;
+  --accent-600: #0058b0;
+  --accent-700: #00458a;
 
-  --emerald-500: #34c759;
-  --emerald-400: #30d158;
-  --amber-500: #ff9500;
-  --amber-400: #ffcc00;
-  --rose-500: #ff3b30;
-  --rose-400: #ff453a;
-  --sky-500: #007aff;
-  --sky-400: #32ade6;
-  --violet-500: #af52de;
-  --violet-400: #bf5af2;
+  --emerald-500: #248a3d;
+  --emerald-400: #28a745;
+  --amber-500: #b25e00;
+  --amber-400: #cc6d00;
+  --rose-500: #d70015;
+  --rose-400: #e02438;
+  --sky-500: #0071e3;
+  --sky-400: #0288d1;
+  --violet-500: #8944ab;
+  --violet-400: #9d4edd;
 
-  --text-primary: #1d1d1f;
-  --text-secondary: rgba(60, 60, 67, 0.65);
-  --text-muted: rgba(60, 60, 67, 0.42);
+  --text-primary: #111113;
+  --text-secondary: rgba(28, 28, 32, 0.78);
+  --text-muted: rgba(28, 28, 32, 0.58);
 
-  --bg-card: rgba(255, 255, 255, 0.75);
-  --border-card: rgba(0, 0, 0, 0.08);
-  --card-highlight: rgba(255, 255, 255, 0.85);
-  --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --border-card: rgba(0, 0, 0, 0.12);
+  --card-highlight: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* ===== Tailwind Custom Configuration ===== */

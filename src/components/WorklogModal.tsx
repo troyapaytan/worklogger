@@ -267,9 +267,9 @@ export default function WorklogModal({
                     <select
                       value={category}
                       onChange={(e) => handleCategoryChange(e.target.value)}
-                      className="w-full pl-8 pr-8 py-2 rounded bg-surface-700 border border-surface-500 text-sm text-text-primary font-semibold focus:outline-none focus:ring-1 transition-all cursor-pointer appearance-none"
+                      className="w-full pl-8 pr-8 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-sm text-text-primary font-semibold focus:outline-none focus:ring-1 transition-all cursor-pointer appearance-none shadow-xs"
                       style={{
-                        borderColor: `${catColor}40`,
+                        borderColor: `${catColor}60`,
                       }}
                       required
                     >
@@ -297,9 +297,9 @@ export default function WorklogModal({
                     <select
                       value={worklogType}
                       onChange={(e) => setWorklogType(e.target.value)}
-                      className="w-full pl-3 pr-8 py-2 rounded bg-surface-700 border border-surface-500 text-sm text-text-primary focus:outline-none focus:ring-1 transition-all cursor-pointer appearance-none"
+                      className="w-full pl-3 pr-8 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-sm font-medium text-text-primary focus:outline-none focus:ring-1 transition-all cursor-pointer appearance-none shadow-xs"
                       style={{
-                        borderColor: `${catColor}30`,
+                        borderColor: `${catColor}50`,
                       }}
                     >
                       {worklogTypes.map((wt) => (
@@ -327,8 +327,8 @@ export default function WorklogModal({
                       value={ticketId}
                       onChange={(e) => setTicketId(e.target.value)}
                       placeholder="Display # (CH-4233)"
-                      className="px-3 py-2 rounded bg-surface-700 border border-surface-500 text-xs font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all"
-                      style={{ borderColor: `${catColor}30` }}
+                      className="px-3 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-xs font-mono font-semibold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all shadow-xs"
+                      style={{ borderColor: `${catColor}50` }}
                       title="Display Ticket Reference Number"
                     />
                     <div className="relative">
@@ -337,8 +337,8 @@ export default function WorklogModal({
                         value={urlTicketId}
                         onChange={(e) => setUrlTicketId(e.target.value)}
                         placeholder="URL ID (108026...)"
-                        className="w-full px-3 py-2 pr-8 rounded bg-surface-700 border border-surface-500 text-xs font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all"
-                        style={{ borderColor: `${catColor}30` }}
+                        className="w-full px-3 py-2 pr-8 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-xs font-mono font-semibold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all shadow-xs"
+                        style={{ borderColor: `${catColor}50` }}
                         title="Internal SDP Ticket ID in URL"
                       />
                       {sdpUrl && (
@@ -453,8 +453,8 @@ export default function WorklogModal({
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="What did you work on?"
                     rows={3}
-                    className="flex-1 px-3 py-2 rounded bg-surface-700 border border-surface-500 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all resize-none"
-                    style={{ borderColor: `${catColor}30` }}
+                    className="flex-1 px-3 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all resize-none shadow-xs"
+                    style={{ borderColor: `${catColor}50` }}
                   />
                 </div>
               </div>
@@ -507,7 +507,7 @@ export default function WorklogModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-1.5 text-xs font-medium rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer border border-surface-600/40"
+                    className="px-4 py-1.5 text-xs font-semibold rounded-xl text-text-primary dark:text-text-secondary hover:text-text-primary hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer border border-surface-400/70 dark:border-surface-600/40"
                   >
                     Cancel
                   </button>

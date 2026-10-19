@@ -150,10 +150,10 @@ export default function SdpSettingsModal({
 
               {/* Cookie String */}
               <div>
-                <label className="block text-[11px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
+                <label className="block text-[11px] font-bold text-text-primary/80 dark:text-text-secondary mb-1.5 uppercase tracking-wider">
                   Session Cookie String
                 </label>
-                <p className="text-[11px] text-text-muted mb-2 leading-relaxed font-normal">
+                <p className="text-[11px] text-text-secondary dark:text-text-muted mb-2 leading-relaxed font-normal">
                   Paste the full <code className="bg-surface-700/50 px-1.5 py-0.5 rounded text-accent-500 font-mono text-[10px]">Cookie</code> header from your browser DevTools (Network tab) for any recent SDP request.
                 </p>
                 <textarea
@@ -161,16 +161,16 @@ export default function SdpSettingsModal({
                   onChange={(e) => handleCookieChange(e.target.value)}
                   placeholder="zalb_b5de...=...; sdpcscook=...;"
                   rows={4}
-                  className="w-full px-3 py-2.5 bg-surface-700/40 border border-surface-500/50 text-xs font-mono text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl resize-none transition-all"
+                  className="w-full px-3 py-2.5 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl resize-none transition-all shadow-xs"
                 />
               </div>
 
               {/* CSRF Token */}
               <div>
-                <label className="block text-[11px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
+                <label className="block text-[11px] font-bold text-text-primary/80 dark:text-text-secondary mb-1.5 uppercase tracking-wider">
                   CSRF Token (x-zcsrftoken)
                 </label>
-                <p className="text-[11px] text-text-muted mb-2 leading-relaxed font-normal">
+                <p className="text-[11px] text-text-secondary dark:text-text-muted mb-2 leading-relaxed font-normal">
                   Usually auto-extracted from the <code className="bg-surface-700/50 px-1.5 py-0.5 rounded text-accent-500 font-mono text-[10px]">sdpcscook</code> in the cookie string.
                 </p>
                 <input
@@ -178,7 +178,7 @@ export default function SdpSettingsModal({
                   value={csrfToken}
                   onChange={(e) => setCsrfToken(e.target.value)}
                   placeholder="CSRF token..."
-                  className="w-full px-3 py-2 bg-surface-700/40 border border-surface-500/50 text-xs font-mono text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all"
+                  className="w-full px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export default function SdpSettingsModal({
                 {/* App ID & Owner ID */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
+                    <label className="block text-[11px] font-bold text-text-primary/80 dark:text-text-secondary mb-1.5 uppercase tracking-wider">
                       App ID
                     </label>
                     <input
@@ -194,15 +194,15 @@ export default function SdpSettingsModal({
                       value={appId}
                       onChange={(e) => setAppId(e.target.value)}
                       placeholder="e.g. 696655712"
-                      className="w-full px-3 py-2 bg-surface-700/40 border border-surface-500/50 rounded-xl text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 transition-all font-mono"
+                      className="w-full px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 rounded-xl text-xs text-text-primary font-mono font-medium focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 transition-all shadow-xs"
                     />
-                    <p className="mt-1 text-[10px] text-text-muted">
+                    <p className="mt-1 text-[10px] text-text-secondary dark:text-text-muted">
                       Typically 696655712.
                     </p>
                   </div>
                   
                   <div>
-                    <label className="flex items-center text-[11px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider gap-2">
+                    <label className="flex items-center text-[11px] font-bold text-text-primary/80 dark:text-text-secondary mb-1.5 uppercase tracking-wider gap-2">
                       Owner ID
                       {ownerName && <span className="bg-accent-500/15 text-accent-500 px-2 py-0.5 rounded-full text-[10px] normal-case truncate max-w-[150px]">{ownerName}</span>}
                     </label>
@@ -211,9 +211,9 @@ export default function SdpSettingsModal({
                       value={ownerId}
                       onChange={(e) => setOwnerId(e.target.value)}
                       placeholder="e.g. 108026001157415656"
-                      className="w-full px-3 py-2 bg-surface-700/40 border border-surface-500/50 rounded-xl text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 transition-all font-mono"
+                      className="w-full px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 rounded-xl text-xs text-text-primary font-mono font-medium focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 transition-all shadow-xs"
                     />
-                    <p className="mt-1 text-[10px] text-text-muted">
+                    <p className="mt-1 text-[10px] text-text-secondary dark:text-text-muted">
                       Your SDP Technician ID. Required for worklogs.
                     </p>
                   </div>
@@ -223,7 +223,7 @@ export default function SdpSettingsModal({
                   <button
                     type="button"
                     onClick={onOpenTypeMap}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 w-full bg-surface-700/40 hover:bg-surface-600/50 border border-surface-500/50 text-xs font-semibold text-text-primary rounded-xl transition-all cursor-pointer active:scale-[0.98]"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 w-full bg-surface-800 dark:bg-surface-700/40 hover:bg-surface-700/60 dark:hover:bg-surface-600/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold text-text-primary rounded-xl transition-all cursor-pointer active:scale-[0.98] shadow-xs"
                   >
                     <List size={14} className="text-accent-500" />
                     <span>Map Worklog Types to SDP IDs</span>
