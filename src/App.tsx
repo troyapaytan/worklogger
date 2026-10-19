@@ -41,14 +41,10 @@ import AchievementModal from './components/AchievementModal';
 import AchievementsTrackerModal from './components/AchievementsTrackerModal';
 import AppleSegmentedControl from './components/AppleSegmentedControl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getISOWeek } from 'date-fns';
+
 import { useAchievements } from './hooks/useAchievements';
 import { useToast } from './components/Toast';
-import SfwIntroAnimation from './components/SfwIntroAnimation';
-import MinecraftIntroAnimation from './components/MinecraftIntroAnimation';
-import NyanCatIntroAnimation from './components/NyanCatIntroAnimation';
-import { NyanCatSpaceBackground } from './components/NyanCatSpaceElements';
-import ShenronModal from './components/ShenronModal';
+
 import type { ConflictInfo } from './utils/conflicts';
 import { Edit3, Trash2, Plus, FileText, Calendar as CalendarIcon, Clock, FolderOpen, Copy, Clipboard } from 'lucide-react';
 import { copyToClipboard } from './utils/sdpFormatter';
@@ -96,20 +92,11 @@ export default function App() {
   const [copiedWorklog, setCopiedWorklog] = useState<Worklog | null>(null);
 
   // Theme state
-  const [theme, setTheme] = useState<'dark' | 'light' | 'cyberpunk' | 'minecraft' | 'fantasy' | 'nyancat' | 'sfw_maybe' | 'dragonball'>(() => {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('theme');
-    if (saved === 'dark' || saved === 'light' || saved === 'cyberpunk' || saved === 'minecraft' || saved === 'fantasy' || saved === 'nyancat' || saved === 'dragonball') return saved;
-    // Migrate old 'sanrio' theme to 'nyancat'
-    if (saved === 'sanrio') { localStorage.setItem('theme', 'nyancat'); return 'nyancat'; }
-    // Migrate old 'retro' theme to 'minecraft'
-    if (saved === 'retro') { localStorage.setItem('theme', 'minecraft'); return 'minecraft'; }
+    if (saved === 'dark' || saved === 'light') return saved;
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   });
-  const [showSfwIntro, setShowSfwIntro] = useState(false);
-  const [showMinecraftIntro, setShowMinecraftIntro] = useState(false);
-  const [showNyanCatIntro, setShowNyanCatIntro] = useState(false);
-  const [showShenron, setShowShenron] = useState(false);
-  const [newlyCreatedBlockId, setNewlyCreatedBlockId] = useState<number | undefined>(undefined);
 
   // OTA Update state
   const currentVersion = pkg.version;
@@ -162,21 +149,9 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light', 'cyberpunk', 'minecraft', 'fantasy', 'nyancat', 'sfw_maybe', 'dragonball');
+    root.classList.remove('light');
     if (theme === 'light') {
       root.classList.add('light');
-    } else if (theme === 'cyberpunk') {
-      root.classList.add('cyberpunk');
-    } else if (theme === 'minecraft') {
-      root.classList.add('minecraft');
-    } else if (theme === 'fantasy') {
-      root.classList.add('fantasy');
-    } else if (theme === 'nyancat') {
-      root.classList.add('nyancat');
-    } else if (theme === 'sfw_maybe') {
-      root.classList.add('sfw_maybe');
-    } else if (theme === 'dragonball') {
-      root.classList.add('dragonball');
     }
   }, [theme]);
 
@@ -189,14 +164,7 @@ export default function App() {
     return () => window.removeEventListener('click', handleClose);
   }, []);
 
-  const setThemeMode = useCallback((mode: 'dark' | 'light' | 'cyberpunk' | 'minecraft' | 'fantasy' | 'nyancat' | 'sfw_maybe' | 'dragonball') => {
-    if (mode === 'sfw_maybe') {
-      setShowSfwIntro(true);
-    } else if (mode === 'minecraft') {
-      setShowMinecraftIntro(true);
-    } else if (mode === 'nyancat') {
-      setShowNyanCatIntro(true);
-    }
+  const setThemeMode = useCallback((mode: 'dark' | 'light') => {
     setTheme(mode);
     localStorage.setItem('theme', mode);
   }, []);
@@ -359,7 +327,7 @@ export default function App() {
           const content = event.target?.result as string;
           const cfg = await importDataFromJson(content);
           if (cfg) {
-            if (cfg.theme === 'dark' || cfg.theme === 'light' || cfg.theme === 'cyberpunk' || cfg.theme === 'minecraft' || cfg.theme === 'fantasy' || cfg.theme === 'nyancat' || cfg.theme === 'sfw_maybe' || cfg.theme === 'dragonball') setTheme(cfg.theme);
+            if (cfg.theme === 'dark' || cfg.theme === 'light') setTheme(cfg.theme);
             if (cfg.use24h !== undefined) setUse24h(cfg.use24h);
             if (cfg.zoom) setZoom(cfg.zoom);
             if (cfg.viewMode === 'daily' || cfg.viewMode === 'weekly') setViewModeState(cfg.viewMode);
@@ -412,18 +380,7 @@ export default function App() {
     [weeklyWorklogs]
   );
 
-  // Auto-trigger Shenron Easter Egg when weekly target is reached in Dragon Ball theme
-  useEffect(() => {
-    if (theme === 'dragonball' && target && target.weeklyMinutes > 0) {
-      if (weeklyTotalMinutes >= target.weeklyMinutes) {
-        const key = `shenron_summoned_${currentWeekKey}`;
-        if (!localStorage.getItem(key)) {
-          localStorage.setItem(key, 'true');
-          setShowShenron(true);
-        }
-      }
-    }
-  }, [theme, weeklyTotalMinutes, target, currentWeekKey]);
+
 
   const { activeAchievement, clearActive } = useAchievements(
     allWorklogs,
@@ -492,8 +449,7 @@ export default function App() {
     return resolved;
   }, [categoryColors, allWorklogs]);
 
-  // ===== Navigation Handlers =====
-  const weekNumber = useMemo(() => getISOWeek(weekStart), [weekStart]);
+
 
   const handlePrevWeek = useCallback(() => {
     const nextWeek = navigateWeek(weekStart, 'prev');
@@ -606,10 +562,7 @@ export default function App() {
           updatedAt: now,
         });
         addToast('Worklog created successfully');
-        if (theme === 'minecraft' || theme === 'nyancat') {
-          // Allow DOM to update first
-          setTimeout(() => setNewlyCreatedBlockId(newId), 150);
-        }
+
       }
 
       setWorklogModal({ open: false, mode: 'create' });
@@ -884,8 +837,7 @@ export default function App() {
       className="min-h-screen flex flex-col bg-surface-900 text-text-primary transition-colors duration-200 relative overflow-hidden"
       style={colorStyles as React.CSSProperties}
     >
-      {/* Nyan Cat Theme Space Background: Animated Planets, UFOs, and Superman */}
-      {theme === 'nyancat' && <NyanCatSpaceBackground />}
+
 
       <div className="max-w-7xl mx-auto w-full px-4 py-6 md:px-8 flex flex-col gap-6 relative z-10">
         
@@ -929,10 +881,6 @@ export default function App() {
           onOpenSdpSettings={() => setSdpSettingsOpen(true)}
           onOpenAchievements={() => setAchievementsTrackerOpen(true)}
           onSetTheme={setThemeMode}
-          onPlaySfwIntro={() => setShowSfwIntro(true)}
-          onPlayMinecraftIntro={() => setShowMinecraftIntro(true)}
-          onPlayNyanCatIntro={() => setShowNyanCatIntro(true)}
-          onSummonShenron={() => setShowShenron(true)}
         />
 
         <main className="flex-1">
@@ -1048,45 +996,7 @@ export default function App() {
             />
           )}
 
-          {/* Pagination style week navigation for SFW theme */}
-          {theme === 'sfw_maybe' && (
-            <div className="mt-8 mb-12 flex flex-col justify-center items-center gap-1.5 font-sans font-bold">
-              <div className="flex justify-center items-center gap-1.5">
-                <button 
-                  onClick={handlePrevWeek}
-                  className="px-3 py-1.5 bg-[#292929] hover:bg-[#383838] transition-colors rounded-sm text-xs text-white flex items-center shadow-sm cursor-pointer"
-                >
-                  <ChevronLeft size={14} className="mr-1" /> Prev
-                </button>
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={handlePrevWeek}
-                    className="px-3 py-1.5 bg-[#292929] hover:bg-[#383838] transition-colors rounded-sm text-xs text-white shadow-sm cursor-pointer"
-                  >
-                    {weekNumber - 1 || 52}
-                  </button>
-                  <span className="px-3 py-1.5 bg-[#f90] text-black rounded-sm text-xs shadow-sm">
-                    {weekNumber}
-                  </span>
-                  <button 
-                    onClick={handleNextWeek}
-                    className="px-3 py-1.5 bg-[#292929] hover:bg-[#383838] transition-colors rounded-sm text-xs text-white shadow-sm cursor-pointer"
-                  >
-                    {(weekNumber % 52) + 1}
-                  </button>
-                </div>
-                <button 
-                  onClick={handleNextWeek}
-                  className="px-3 py-1.5 bg-[#292929] hover:bg-[#383838] transition-colors rounded-sm text-xs text-white flex items-center shadow-sm cursor-pointer"
-                >
-                  Next <ChevronRight size={14} className="ml-1" />
-                </button>
-              </div>
-              <div className="text-[#999] text-xs font-semibold mt-1">
-                {getWeekRangeLabel(weekStart)}
-              </div>
-            </div>
-          )}
+
         </main>
       </div>
 
@@ -1282,42 +1192,7 @@ export default function App() {
         </div>
       )}
 
-      {/* SFW Theme Intro Animation */}
-      {showSfwIntro && (
-        <SfwIntroAnimation onComplete={() => setShowSfwIntro(false)} />
-      )}
 
-      {/* Minecraft Theme Intro Animation */}
-      {showMinecraftIntro && (
-        <MinecraftIntroAnimation onComplete={() => setShowMinecraftIntro(false)} />
-      )}
-
-      {/* Nyan Cat Theme Intro Animation */}
-      {showNyanCatIntro && (
-        <NyanCatIntroAnimation onComplete={() => setShowNyanCatIntro(false)} />
-      )}
-
-      {/* Single Block Build Animation */}
-      {newlyCreatedBlockId !== undefined && theme === 'minecraft' && (
-        <MinecraftIntroAnimation 
-           targetBlockId={newlyCreatedBlockId} 
-           onComplete={() => setNewlyCreatedBlockId(undefined)} 
-        />
-      )}
-      {newlyCreatedBlockId !== undefined && theme === 'nyancat' && (
-        <NyanCatIntroAnimation 
-           targetBlockId={newlyCreatedBlockId} 
-           onComplete={() => setNewlyCreatedBlockId(undefined)} 
-        />
-      )}
-
-      {/* Shenron Easter Egg Modal */}
-      <ShenronModal
-        isOpen={showShenron}
-        onClose={() => setShowShenron(false)}
-        weeklyHours={(weeklyTotalMinutes / 60).toFixed(1)}
-        targetHours={((target?.weeklyMinutes ?? 2400) / 60).toFixed(1)}
-      />
     </div>
   );
 }

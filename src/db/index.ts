@@ -63,7 +63,7 @@ export interface FullDataPayload {
   targets: UserTarget[];
   categoryColors: CategoryColor[];
   config?: {
-    theme?: 'dark' | 'light' | 'cyberpunk' | 'minecraft' | 'fantasy' | 'nyancat' | 'sfw_maybe' | 'dragonball';
+    theme?: 'dark' | 'light';
     use24h?: boolean;
     zoom?: number;
     selectedDate?: string;

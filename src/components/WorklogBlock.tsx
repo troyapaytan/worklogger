@@ -21,7 +21,7 @@ interface WorklogBlockProps {
   onContextMenu?: (e: React.MouseEvent, log: Worklog) => void;
   use24h?: boolean;
   color?: string;
-  theme?: string;
+  theme?: 'light' | 'dark';
 }
 
 const categoryClass: Record<string, string> = {
@@ -128,8 +128,7 @@ export default function WorklogBlock({
   onContextMenu,
   use24h = false,
   color,
-  theme,
-  minecraftBlockId,
+  theme: _theme,
 }: WorklogBlockProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHoveringBlock, setIsHoveringBlock] = useState(false);
@@ -158,9 +157,6 @@ export default function WorklogBlock({
   const duration = calculateDuration(log.startTime, log.endTime);
   const cls = categoryClass[log.category ?? 'Other'] ?? 'block-other';
   const { cardBg, cardBorder, innerBg, rawColor } = getWorklogCardColors(color, log.category);
-  const isMinecraft = theme === 'minecraft';
-  const isNyancat = theme === 'nyancat';
-  const mcBlockClass = isMinecraft ? 'minecraft-texture-overlay' : isNyancat ? 'nyancat-overlay' : '';
 
   const calculatePopupPosition = (clientX: number, clientY: number) => {
     const tooltipWidth = 320;
@@ -299,7 +295,7 @@ export default function WorklogBlock({
         id={`worklog-${log.id}`}
         data-duration={duration}
         data-start-time={log.startTime}
-        className={`absolute top-1 bottom-1 rounded-lg cursor-pointer select-none group flex items-center pointer-events-auto ${cls} ${mcBlockClass} ${
+        className={`absolute top-1 bottom-1 rounded-lg cursor-pointer select-none group flex items-center pointer-events-auto ${cls} ${
           hasConflict ? 'conflict-stripe' : ''
         } ${
           isDragging
@@ -312,13 +308,16 @@ export default function WorklogBlock({
           left: `${left}%`,
           width: `${width}%`,
           backgroundColor: color,
+          '--block-raw-color': rawColor,
+          '--block-card-bg': cardBg,
+          '--block-card-border': cardBorder,
           boxShadow: isHoveringBlock
             ? `0 0 16px 4px ${rawColor || '#3b82f6'}, inset 0 0 8px rgba(255, 255, 255, 0.45)`
             : 'none',
           transition: isHoveringBlock
             ? 'box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms ease-out'
             : 'box-shadow 250ms ease-out, transform 150ms ease-out',
-        }}
+        } as React.CSSProperties}
         onClick={() => !isDragging && onClick(log)}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}

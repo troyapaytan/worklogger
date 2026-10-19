@@ -28,7 +28,7 @@ interface ColorEditorProps {
   currentColors: CategoryColor[];
   categories?: { key: string; name: string; color: string; ticketId?: string; urlTicketId?: string; status?: string }[];
   sdpConfig?: SdpConfig;
-  theme?: string;
+  theme?: 'light' | 'dark';
   onSave: (categories: { category: string; name: string; color: string; ticketId?: string; urlTicketId?: string; status?: string }[]) => void;
   onClose: () => void;
 }
@@ -74,7 +74,7 @@ export default function ColorEditor({
   currentColors,
   categories,
   sdpConfig,
-  theme,
+  theme: _theme,
   onSave,
   onClose,
 }: ColorEditorProps) {

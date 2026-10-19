@@ -24,7 +24,7 @@ interface DailyGanttProps {
   categories: { key: string; name: string; color?: string }[];
   zoom: number;
   use24h: boolean;
-  theme?: string;
+  theme?: 'light' | 'dark';
   onCreateWorklog: (date: string, startTime: number, endTime: number) => void;
   onEditWorklog: (log: Worklog) => void;
   onResizeWorklog: (id: number, newStart: number, newEnd: number) => void;
@@ -254,19 +254,21 @@ export default function DailyGantt({
           )}
 
           {/* Drag preview */}
-          {dragState.active && dragWidth > 0 && (
+          {dragState.active && (
             <div
-              className="drag-preview absolute top-1 bottom-1"
-              style={{ left: `${dragLeft}%`, width: `${dragWidth}%` }}
+              className={`absolute top-1 bottom-1 drag-preview ${dragWidth === 0 ? 'hidden' : ''}`}
+              style={{ left: `${dragLeft}%`, width: dragWidth > 0 ? `${dragWidth}%` : '1px' }}
             >
               {/* Start time label (upper-left) */}
               <div className="absolute -top-4 left-0 -translate-y-1/2 bg-accent-500 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-md shadow-md whitespace-nowrap z-30 pointer-events-none">
                 {formatMinutesToTime(Math.min(dragState.startMin, dragState.endMin), use24h)}
               </div>
               {/* End time label (upper-right) */}
-              <div className="absolute -top-4 right-0 -translate-y-1/2 bg-accent-500 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-md shadow-md whitespace-nowrap z-30 pointer-events-none">
-                {formatMinutesToTime(Math.max(dragState.startMin, dragState.endMin), use24h)}
-              </div>
+              {dragWidth > 0 && (
+                <div className="absolute -top-4 right-0 -translate-y-1/2 bg-accent-500 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-md shadow-md whitespace-nowrap z-30 pointer-events-none">
+                  {formatMinutesToTime(Math.max(dragState.startMin, dragState.endMin), use24h)}
+                </div>
+              )}
             </div>
           )}
 
