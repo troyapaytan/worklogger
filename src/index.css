@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* ===== Color Themes & Variables ===== */
 :root {
   /* Apple Dark Mode (Default) - Obsidian / True System Black Base */

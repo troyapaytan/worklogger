@@ -52,21 +52,21 @@ const PRESET_COLORS = [
 ];
 
 const getStatusBadgeStyle = (status?: string) => {
-  if (!status) return 'bg-slate-100 dark:bg-surface-700/60 text-slate-700 dark:text-text-muted border-slate-300 dark:border-surface-600';
+  if (!status) return 'bg-slate-200 text-slate-800 border-slate-400 dark:bg-surface-700 dark:text-text-muted dark:border-surface-600';
   const s = status.toLowerCase();
   if (s.includes('closed') || s.includes('resolved') || s.includes('completed')) {
-    return 'bg-slate-100 dark:bg-surface-700 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-surface-600';
+    return 'bg-slate-200 text-slate-900 border-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600';
   }
   if (s.includes('hold') || s.includes('pending') || s.includes('wait')) {
-    return 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-500/40';
+    return 'bg-amber-100 text-amber-950 border-amber-400 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700';
   }
   if (s.includes('progress') || s.includes('open') || s.includes('assign') || s.includes('develop') || s.includes('test') || s.includes('requir')) {
-    return 'bg-blue-100 dark:bg-blue-500/20 text-blue-900 dark:text-blue-300 border-blue-300 dark:border-blue-500/40';
+    return 'bg-blue-100 text-blue-950 border-blue-400 dark:bg-blue-950/70 dark:text-blue-200 dark:border-blue-700';
   }
   if (s.includes('cancel') || s.includes('reject')) {
-    return 'bg-rose-100 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border-rose-300 dark:border-rose-500/40';
+    return 'bg-rose-100 text-rose-950 border-rose-400 dark:bg-rose-950/70 dark:text-rose-200 dark:border-rose-700';
   }
-  return 'bg-teal-100 dark:bg-teal-500/20 text-teal-900 dark:text-teal-300 border-teal-300 dark:border-teal-500/40';
+  return 'bg-emerald-100 text-emerald-950 border-emerald-400 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-700';
 };
 
 export default function ColorEditor({
@@ -642,7 +642,7 @@ export default function ColorEditor({
                 <button
                   type="button"
                   onClick={() => { setBulkOpen(true); handleBulkFetch('SR'); }}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-800 dark:text-teal-300 hover:text-teal-900 dark:hover:text-teal-200 transition-all cursor-pointer border border-teal-500/40 active:scale-[0.97]"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400 text-white shadow-xs transition-all cursor-pointer active:scale-[0.97]"
                 >
                   <Download size={13} />
                   <span>Bulk Import My Tickets</span>
@@ -1128,7 +1128,7 @@ export default function ColorEditor({
             </div>
 
             {/* Headers row */}
-            <div className="grid grid-cols-[2fr_2fr_3fr_auto_auto_auto] gap-2.5 text-[11px] font-bold text-text-primary/75 dark:text-text-secondary uppercase tracking-wider mb-2 px-2 items-center">
+            <div className="grid grid-cols-[2fr_1.8fr_2.7fr_auto_auto_auto] gap-2.5 text-[11px] font-bold text-text-primary/75 dark:text-text-secondary uppercase tracking-wider mb-2 px-2 items-center">
               <span>Project Name</span>
               <span>Ticket #</span>
               <span className="flex items-center gap-1">
@@ -1136,7 +1136,7 @@ export default function ColorEditor({
                 URL Ticket ID
               </span>
               <span className="w-7 text-center">Color</span>
-              <span className="min-w-[70px] text-center">Status</span>
+              <span className="min-w-[95px] text-center">Status</span>
               <span className="w-6"></span>
             </div>
 
@@ -1152,7 +1152,7 @@ export default function ColorEditor({
                 .map((item) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_2fr_3fr_auto_auto_auto] gap-2.5 items-center py-1 border-b border-surface-600/30 dark:border-surface-700/30 last:border-0"
+                  className="grid grid-cols-[2fr_1.8fr_2.7fr_auto_auto_auto] gap-2.5 items-center py-1 border-b border-surface-600/30 dark:border-surface-700/30 last:border-0"
                 >
                   {/* Editable Project Name field */}
                   <input
@@ -1196,16 +1196,16 @@ export default function ColorEditor({
                   </div>
 
                   {/* Status Badge */}
-                  <div className="flex items-center justify-center min-w-[70px]">
+                  <div className="flex items-center justify-center min-w-[95px]">
                     {item.status ? (
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-lg border font-semibold whitespace-nowrap max-w-[90px] truncate text-center transition-colors ${getStatusBadgeStyle(item.status)}`}
+                        className={`text-[10px] px-2.5 py-0.5 rounded-lg border font-bold whitespace-nowrap max-w-[115px] truncate text-center shadow-xs transition-colors ${getStatusBadgeStyle(item.status)}`}
                         title={item.status}
                       >
                         {item.status}
                       </span>
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-surface-700/40 text-slate-600 dark:text-text-muted border border-slate-300 dark:border-surface-600 text-center font-mono">
+                      <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-surface-700/60 text-slate-700 dark:text-text-muted border border-slate-300 dark:border-surface-600 text-center font-mono">
                         —
                       </span>
                     )}

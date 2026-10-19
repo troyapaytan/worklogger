@@ -149,9 +149,12 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light');
     if (theme === 'light') {
+      root.classList.remove('dark');
       root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
     }
   }, [theme]);
 
