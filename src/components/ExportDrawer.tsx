@@ -50,6 +50,7 @@ export default function ExportDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={onClose}
           />
@@ -59,6 +60,7 @@ export default function ExportDrawer({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
             className="glass-card relative w-full max-w-2xl p-6 shadow-2xl z-10 max-h-[85vh] flex flex-col rounded-2xl"
           >
             <button

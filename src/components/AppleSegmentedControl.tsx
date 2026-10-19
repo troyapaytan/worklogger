@@ -55,6 +55,7 @@ export default function AppleSegmentedControl<T extends string | number>({
               <motion.div
                 layoutId={layoutId}
                 className="absolute inset-0 rounded-full bg-surface-600/90 shadow-[0_1px_3px_rgba(0,0,0,0.2),0_1px_2px_rgba(0,0,0,0.12)] -z-10"
+                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
                 transition={{
                   type: 'spring',
                   stiffness: 480,

@@ -63,6 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.94 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                 className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-2xl shadow-2xl min-w-[280px] max-w-[400px] ${colorMap[toast.type]}`}
               >
                 <Icon size={18} className="shrink-0" />

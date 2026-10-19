@@ -55,7 +55,7 @@ export default function DailyGantt({
   const dateKey = formatDateKey(selectedDate);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { containerRef: scrollContainerRef, bindDrag } = useInertiaScroll<HTMLDivElement>({
+  const { containerRef: scrollContainerRef, bindDrag, isPanning } = useInertiaScroll<HTMLDivElement>({
     direction: 'x',
     friction: 0.95,
     smoothWheel: true,
@@ -80,7 +80,7 @@ export default function DailyGantt({
     [dayLogs]
   );
 
-  // Drag-to-create
+  // Drag-to-create with RAF throttling and cached rect
   const [dragState, setDragState] = useState<{
     active: boolean;
     startMin: number;
@@ -88,11 +88,23 @@ export default function DailyGantt({
   }>({ active: false, startMin: 0, endMin: 0 });
   const [hoverMinutes, setHoverMinutes] = useState<number | null>(null);
 
+  const moveRafRef = useRef<number | null>(null);
+  const cachedRectRef = useRef<DOMRect | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (moveRafRef.current !== null) {
+        cancelAnimationFrame(moveRafRef.current);
+      }
+    };
+  }, []);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
+      cachedRectRef.current = rect;
       const minutes = pointerPosToMinutes(e.clientX, rect);
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       setDragState({ active: true, startMin: minutes, endMin: minutes });
@@ -102,19 +114,30 @@ export default function DailyGantt({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const minutes = pointerPosToMinutes(e.clientX, rect);
-
-      if (dragState.active) {
-        setDragState((prev) => ({ ...prev, endMin: minutes }));
+      const clientX = e.clientX;
+      if (moveRafRef.current !== null) {
+        cancelAnimationFrame(moveRafRef.current);
       }
-      setHoverMinutes(minutes);
+      moveRafRef.current = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        const rect = cachedRectRef.current || containerRef.current.getBoundingClientRect();
+        const minutes = pointerPosToMinutes(clientX, rect);
+
+        if (dragState.active) {
+          setDragState((prev) => ({ ...prev, endMin: minutes }));
+        }
+        setHoverMinutes(minutes);
+      });
     },
     [dragState.active]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (moveRafRef.current !== null) {
+      cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+    }
+    cachedRectRef.current = null;
     if (!dragState.active) return;
     const start = Math.min(dragState.startMin, dragState.endMin);
     const end = Math.max(dragState.startMin, dragState.endMin);
@@ -208,11 +231,14 @@ export default function DailyGantt({
         {/* Gantt canvas */}
         <div
           ref={containerRef}
-          className="relative h-[64px] cursor-crosshair mb-4"
+          className={`relative h-[64px] cursor-crosshair mb-4 ${isPanning ? 'pointer-events-none select-none' : ''}`}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onPointerLeave={() => setHoverMinutes(null)}
+          onPointerLeave={() => {
+            cachedRectRef.current = null;
+            setHoverMinutes(null);
+          }}
           onContextMenu={(e) => {
             e.preventDefault();
             if (containerRef.current) {
@@ -340,6 +366,8 @@ export default function DailyGantt({
                   }`}
                   style={{
                     borderLeft: `4px solid ${catColor}`,
+                    transform: 'translateZ(0)',
+                    willChange: 'transform, opacity',
                   }}
                 >
                   {/* Time column */}

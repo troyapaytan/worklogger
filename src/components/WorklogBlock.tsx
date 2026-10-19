@@ -236,6 +236,17 @@ export default function WorklogBlock({
     };
   }, [isHoveringBlock, isPopupVisible]);
 
+  const resizeRafRef = useRef<number | null>(null);
+  const cachedRectRef = useRef<DOMRect | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resizeRafRef.current !== null) {
+        cancelAnimationFrame(resizeRafRef.current);
+      }
+    };
+  }, []);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, side: 'left' | 'right') => {
       e.stopPropagation();
@@ -246,6 +257,9 @@ export default function WorklogBlock({
         originalStart: log.startTime,
         originalEnd: log.endTime,
       };
+      if (containerRef.current) {
+        cachedRectRef.current = containerRef.current.getBoundingClientRect();
+      }
       setPreviewStart(log.startTime);
       setPreviewEnd(log.endTime);
       setIsDragging(true);
@@ -256,28 +270,41 @@ export default function WorklogBlock({
         hoverTimerRef.current = null;
       }
     },
-    [log.startTime, log.endTime]
+    [log.startTime, log.endTime, containerRef]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!dragRef.current || !containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const minutes = pointerPosToMinutes(e.clientX, rect);
-      const clamped = clampMinutes(minutes);
-
-      if (dragRef.current.side === 'left') {
-        const newStart = Math.min(clamped, dragRef.current.originalEnd - 15);
-        setPreviewStart(newStart);
-      } else {
-        const newEnd = Math.max(clamped, dragRef.current.originalStart + 15);
-        setPreviewEnd(newEnd);
+      if (!dragRef.current) return;
+      const clientX = e.clientX;
+      if (resizeRafRef.current !== null) {
+        cancelAnimationFrame(resizeRafRef.current);
       }
+      resizeRafRef.current = requestAnimationFrame(() => {
+        if (!dragRef.current) return;
+        const rect = cachedRectRef.current || containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const minutes = pointerPosToMinutes(clientX, rect);
+        const clamped = clampMinutes(minutes);
+
+        if (dragRef.current.side === 'left') {
+          const newStart = Math.min(clamped, dragRef.current.originalEnd - 15);
+          setPreviewStart(newStart);
+        } else {
+          const newEnd = Math.max(clamped, dragRef.current.originalStart + 15);
+          setPreviewEnd(newEnd);
+        }
+      });
     },
     [containerRef]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (resizeRafRef.current !== null) {
+      cancelAnimationFrame(resizeRafRef.current);
+      resizeRafRef.current = null;
+    }
+    cachedRectRef.current = null;
     if (!dragRef.current) return;
     setIsDragging(false);
     onResize(log.id!, previewStart, previewEnd);
@@ -287,11 +314,10 @@ export default function WorklogBlock({
   return (
     <>
       <motion.div
-        layout
-        initial={{ opacity: 0, scaleX: 0.8 }}
-        animate={{ opacity: 1, scaleX: 1 }}
-        exit={{ opacity: 0, scaleX: 0.8 }}
-        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
         id={`worklog-${log.id}`}
         data-duration={duration}
         data-start-time={log.startTime}
@@ -311,12 +337,8 @@ export default function WorklogBlock({
           '--block-raw-color': rawColor,
           '--block-card-bg': cardBg,
           '--block-card-border': cardBorder,
-          boxShadow: isHoveringBlock
-            ? `0 0 16px 4px ${rawColor || '#3b82f6'}, inset 0 0 8px rgba(255, 255, 255, 0.45)`
-            : 'none',
-          transition: isHoveringBlock
-            ? 'box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms ease-out'
-            : 'box-shadow 250ms ease-out, transform 150ms ease-out',
+          transform: 'translateZ(0)',
+          willChange: isDragging ? 'left, width' : 'transform, opacity',
         } as React.CSSProperties}
         onClick={() => !isDragging && onClick(log)}
         onMouseEnter={handleMouseEnter}
@@ -338,6 +360,16 @@ export default function WorklogBlock({
           }
         }}
       >
+        {/* Hardware-accelerated hover glow layer */}
+        <div
+          className={`absolute -inset-0.5 rounded-lg opacity-0 pointer-events-none transition-opacity duration-200 -z-10 ${
+            isHoveringBlock ? 'opacity-100' : ''
+          }`}
+          style={{
+            boxShadow: `0 0 16px 4px ${rawColor || '#3b82f6'}, inset 0 0 8px rgba(255, 255, 255, 0.45)`,
+          }}
+        />
+
         {/* Visual Block Container */}
         <div className="absolute inset-0 rounded-lg overflow-hidden flex items-center">
           {/* Left resize handle */}
@@ -385,18 +417,21 @@ export default function WorklogBlock({
         createPortal(
           <AnimatePresence>
             {isPopupVisible && !isDragging && (
-              <motion.div
-                initial={{ opacity: 0, y: popupCoords.placeAbove ? 6 : -6, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: popupCoords.placeAbove ? 4 : -4, scale: 0.96 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              <div
                 className="fixed z-[9999999] pointer-events-none w-72 sm:w-80"
                 style={{
                   left: `${popupCoords.x}px`,
                   top: `${popupCoords.y}px`,
                   transform: popupCoords.placeAbove ? 'translateY(-100%)' : 'none',
+                  willChange: 'transform, opacity',
                 }}
               >
+                <motion.div
+                  initial={{ opacity: 0, y: popupCoords.placeAbove ? 6 : -6, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: popupCoords.placeAbove ? 4 : -4, scale: 0.96 }}
+                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                >
                 <div
                   className="rounded-2xl p-3.5 shadow-2xl text-left text-white text-xs flex flex-col gap-2.5 backdrop-blur-2xl"
                   style={{
@@ -490,8 +525,9 @@ export default function WorklogBlock({
                   </div>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>,
+            </div>
+          )}
+        </AnimatePresence>,
           document.body
         )}
     </>

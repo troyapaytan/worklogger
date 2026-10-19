@@ -210,6 +210,7 @@ export default function Header({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: -6 }}
                   transition={{ type: 'spring', stiffness: 440, damping: 32, mass: 0.7 }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                   className="absolute right-0 mt-2.5 w-44 bg-surface-800/90 backdrop-blur-2xl border border-surface-600/60 rounded-2xl shadow-2xl z-[100] overflow-hidden p-1.5 origin-top-right"
                 >
                   <div className="space-y-0.5">
@@ -257,6 +258,7 @@ export default function Header({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: -6 }}
                   transition={{ type: 'spring', stiffness: 440, damping: 32, mass: 0.7 }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
                   className="absolute right-0 mt-2.5 w-72 bg-surface-800/90 backdrop-blur-2xl border border-surface-600/60 rounded-2xl shadow-2xl z-[100] overflow-hidden flex flex-col p-2 origin-top-right"
                 >
                   <div className="px-3.5 py-3 rounded-xl bg-surface-700/40 border border-surface-600/30 mb-2">

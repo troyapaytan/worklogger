@@ -571,6 +571,7 @@ export default function ColorEditor({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
             className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
             onClick={handleClose}
           />
@@ -580,6 +581,7 @@ export default function ColorEditor({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 14 }}
             transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }}
+            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
             className="glass-card relative w-full max-w-3xl p-6 shadow-2xl z-10 rounded-2xl border border-surface-600/50"
           >
             {/* Close button */}

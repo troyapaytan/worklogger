@@ -52,7 +52,7 @@ export default function WeeklyGantt({
   const hourMarkers = getHourMarkers(START_HOUR, END_HOUR, use24h);
   const weekDays = getWeekDays(weekStart);
 
-  const { containerRef, bindDrag } = useInertiaScroll<HTMLDivElement>({
+  const { containerRef, bindDrag, isPanning } = useInertiaScroll<HTMLDivElement>({
     direction: 'x',
     friction: 0.95,
     smoothWheel: true,
@@ -144,6 +144,7 @@ export default function WeeklyGantt({
                 setPostingDays={setPostingDays}
                 allPosted={allPosted}
                 theme={theme}
+                isPanning={isPanning}
               />
             );
           })}
@@ -167,6 +168,7 @@ interface GanttRowProps {
   use24h: boolean;
   categories: { key: string; name: string; color: string }[];
   theme?: string;
+  isPanning?: boolean;
   onCreateWorklog: (date: string, startTime: number, endTime: number) => void;
   onEditWorklog: (log: Worklog) => void;
   onResizeWorklog: (id: number, newStart: number, newEnd: number) => void;
@@ -200,6 +202,7 @@ function GanttRow({
   setPostingDays,
   allPosted,
   theme,
+  isPanning,
 }: GanttRowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragState, setDragState] = useState<{
@@ -209,12 +212,24 @@ function GanttRow({
   }>({ active: false, startMin: 0, endMin: 0 });
   const [hoverMinutes, setHoverMinutes] = useState<number | null>(null);
 
+  const moveRafRef = useRef<number | null>(null);
+  const cachedRectRef = useRef<DOMRect | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (moveRafRef.current !== null) {
+        cancelAnimationFrame(moveRafRef.current);
+      }
+    };
+  }, []);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
+      cachedRectRef.current = rect;
       const minutes = pointerPosToMinutes(e.clientX, rect);
 
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -225,19 +240,30 @@ function GanttRow({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const minutes = pointerPosToMinutes(e.clientX, rect);
-
-      if (dragState.active) {
-        setDragState((prev) => ({ ...prev, endMin: minutes }));
+      const clientX = e.clientX;
+      if (moveRafRef.current !== null) {
+        cancelAnimationFrame(moveRafRef.current);
       }
-      setHoverMinutes(minutes);
+      moveRafRef.current = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        const rect = cachedRectRef.current || containerRef.current.getBoundingClientRect();
+        const minutes = pointerPosToMinutes(clientX, rect);
+
+        if (dragState.active) {
+          setDragState((prev) => ({ ...prev, endMin: minutes }));
+        }
+        setHoverMinutes(minutes);
+      });
     },
     [dragState.active]
   );
 
   const handlePointerUp = useCallback(() => {
+    if (moveRafRef.current !== null) {
+      cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+    }
+    cachedRectRef.current = null;
     if (!dragState.active) return;
     const start = Math.min(dragState.startMin, dragState.endMin);
     const end = Math.max(dragState.startMin, dragState.endMin);
@@ -328,11 +354,14 @@ function GanttRow({
       {/* Timeline Canvas */}
       <div
         ref={containerRef}
-        className="flex-1 relative h-[52px] cursor-crosshair"
+        className={`flex-1 relative h-[52px] cursor-crosshair ${isPanning ? 'pointer-events-none select-none' : ''}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={() => setHoverMinutes(null)}
+        onPointerLeave={() => {
+          cachedRectRef.current = null;
+          setHoverMinutes(null);
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
           if (containerRef.current) {

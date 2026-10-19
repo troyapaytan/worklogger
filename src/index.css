@@ -173,7 +173,8 @@ body {
 /* ===== Tactile Active Feedback (Rule 1 & Rule 10) ===== */
 button:not(:disabled):active,
 [role="button"]:not(:disabled):active {
-  transform: scale(0.97);
+  transform: scale(0.97) translateZ(0);
+  will-change: transform;
   transition: transform 100ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -200,13 +201,15 @@ button:not(:disabled):active,
 /* ===== Apple Glass Card Material Layout (Rule 12) ===== */
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--border-card);
   border-top: 1px solid var(--card-highlight);
   border-radius: var(--theme-radius-xl);
   box-shadow: var(--glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transform: translateZ(0);
+  isolation: isolate;
 }
 
 .glass-card-hover:hover {
@@ -294,7 +297,9 @@ button:not(:disabled):active,
 .block-dev, .block-meeting, .block-support, .block-research, .block-other {
   border-radius: var(--theme-radius-md);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 .light .block-dev, .light .block-meeting, .light .block-support, .light .block-research, .light .block-other {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -363,17 +368,19 @@ button:not(:disabled):active,
   animation: toast-out 0.25s ease-in forwards;
 }
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(16px) scale(0.96) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
 }
 @keyframes toast-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  from { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
+  to { opacity: 0; transform: translateY(-10px) scale(0.96) translateZ(0); }
 }
 
 /* ===== Apple Laser indicator for current time ===== */
 .current-time-line {
   box-shadow: 0 0 6px var(--color-rose-500), 0 0 12px rgba(255, 69, 58, 0.4);
+  transform: translateZ(0);
+  will-change: left;
 }
 
 /* ===== Drag preview ===== */
@@ -382,6 +389,8 @@ button:not(:disabled):active,
   border: 1.5px dashed var(--color-accent-400);
   border-radius: var(--theme-radius-md);
   pointer-events: none;
+  transform: translateZ(0);
+  will-change: left, width;
 }
 .light .drag-preview {
   background: rgba(0, 122, 255, 0.12);

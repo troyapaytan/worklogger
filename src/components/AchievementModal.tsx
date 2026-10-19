@@ -37,10 +37,12 @@ export default function AchievementModal({ achievement, onClose }: AchievementMo
         >
           <motion.div
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
             onClick={onClose}
           />
           <motion.div
             className="relative w-full max-w-sm glass-card p-6 flex flex-col items-center text-center overflow-hidden"
+            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
             initial={{ scale: 0.9, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 10, opacity: 0 }}

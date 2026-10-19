@@ -1107,7 +1107,7 @@ export default function App() {
       {contextMenu.visible && (
         <div
           className="fixed bg-surface-800 border border-surface-600 shadow-2xl z-[150] w-44 py-1 text-left select-none pointer-events-auto rounded-lg"
-          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
+          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, transform: 'translateZ(0)', willChange: 'transform, opacity' }}
         >
           {contextMenu.type === 'block' && contextMenu.log && (
             <>
