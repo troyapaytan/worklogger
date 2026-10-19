@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Edit3, ExternalLink, CheckCircle2 } from 'lucide-react';
 import type { Worklog } from '../db';
