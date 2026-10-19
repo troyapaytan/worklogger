@@ -2,6 +2,79 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* ===== SM's HenrySans Font System ===== */
+@font-face {
+  font-family: 'HenrySans';
+  src: local('HenrySans Regular'), local('HenrySans-Regular'), local('HenrySans'), local('Henry Sans'),
+       url('/fonts/HenrySans-Regular.ttf') format('truetype');
+  font-weight: 300 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HenrySans';
+  src: local('HenrySans Medium'), local('HenrySans-Medium'),
+       url('/fonts/HenrySans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HenrySans';
+  src: local('HenrySans Bold'), local('HenrySans-Bold'),
+       url('/fonts/HenrySans-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HenrySans';
+  src: local('HenrySans Black'), local('HenrySans-Black'),
+       url('/fonts/HenrySans-Black.ttf') format('truetype');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Henry Sans';
+  src: local('HenrySans Regular'), local('HenrySans-Regular'), local('HenrySans'), local('Henry Sans'),
+       url('/fonts/HenrySans-Regular.ttf') format('truetype');
+  font-weight: 300 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Henry Sans';
+  src: local('HenrySans Medium'), local('HenrySans-Medium'),
+       url('/fonts/HenrySans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Henry Sans';
+  src: local('HenrySans Bold'), local('HenrySans-Bold'),
+       url('/fonts/HenrySans-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Henry Sans';
+  src: local('HenrySans Black'), local('HenrySans-Black'),
+       url('/fonts/HenrySans-Black.ttf') format('truetype');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ===== Color Themes & Variables ===== */
 :root {
   /* Apple Dark Mode (Default) - Obsidian / True System Black Base */
@@ -119,7 +192,7 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter", system-ui, sans-serif;
+  --font-sans: 'HenrySans', 'Henry Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
 
   /* Use theme-driven radius variables */
   --radius-sm: var(--theme-radius-sm);
@@ -143,7 +216,7 @@ body, h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, figcaption, blockquote, dl,
   padding: 0;
 }
 
-html {
+html, body, button, input, select, textarea {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
