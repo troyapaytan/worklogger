@@ -7,7 +7,7 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
   statusEl.className = "";
 
   try {
-    // 0. Extract details from the active tab if it's the SDP page
+    // 0. Extract details from the active tab if it's the Manage Engine page
     let extractedData = { ownerId: '', ownerName: 'Authenticated User', appId: '696655712', worklogTypeMap: {} };
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -108,11 +108,11 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
       console.log("Could not extract data from page:", e);
     }
 
-    // 1. Get all cookies for SDP domain
+    // 1. Get all cookies for Manage Engine domain
     const cookies = await chrome.cookies.getAll({ domain: "servicedeskplus.smretailinc.com" });
     
     if (cookies.length === 0) {
-      throw new Error("No cookies found. Are you logged in to SDP?");
+      throw new Error("No cookies found. Are you logged in to Manage Engine?");
     }
 
     // 2. Format cookie string and find CSRF token
@@ -121,7 +121,7 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
     const csrfToken = csrfCookie ? csrfCookie.value : '';
 
     if (!csrfToken) {
-      // Some SDP versions don't use sdpcsparam, so we just silently proceed.
+      // Some Manage Engine versions don't use sdpcsparam, so we just silently proceed.
     }
 
     statusEl.textContent = "Syncing to Worklogger CLI...";

@@ -50,17 +50,16 @@ export default function ExportDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-2xl p-6 shadow-2xl z-10 max-h-[85vh] flex flex-col rounded-2xl"
           >
             <button
@@ -76,10 +75,10 @@ export default function ExportDrawer({
               </div>
               <div>
                 <h2 className="text-base font-semibold tracking-tight text-text-primary">
-                  ServiceDesk Plus Export
+                  Manage Engine Export
                 </h2>
                 <p className="text-xs text-text-muted">
-                  Copy-ready worklog for SDP submission
+                  Copy-ready worklog for Manage Engine submission
                 </p>
               </div>
             </div>

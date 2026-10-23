@@ -56,6 +56,7 @@ export interface AchievementsState {
   ticketStarter: number;
   geraldsGame: number;
   weeklyTargetsHit: string[]; // Store "YYYY-Wxx"
+  otThanks: number; // "OT Thanks!" infinite tiers (1=1st, 2=5th, 3=10th, etc.)
 }
 
 export interface FullDataPayload {
@@ -89,7 +90,8 @@ let state: FullDataPayload = {
     consistencyIsKey: 0,
     ticketStarter: 0,
     geraldsGame: 0,
-    weeklyTargetsHit: []
+    weeklyTargetsHit: [],
+    otThanks: 0
   }
 };
 
@@ -235,7 +237,8 @@ export function getAchievements(): AchievementsState {
     consistencyIsKey: 0,
     ticketStarter: 0,
     geraldsGame: 0,
-    weeklyTargetsHit: []
+    weeklyTargetsHit: [],
+    otThanks: 0
   };
 }
 
@@ -250,7 +253,8 @@ export function saveAchievements(ach: Partial<AchievementsState>) {
       consistencyIsKey: 0,
       ticketStarter: 0,
       geraldsGame: 0,
-      weeklyTargetsHit: []
+      weeklyTargetsHit: [],
+      otThanks: 0
     };
   }
   state.achievements = { ...state.achievements, ...ach };

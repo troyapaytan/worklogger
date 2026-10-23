@@ -389,7 +389,8 @@ export default function App() {
     allWorklogs,
     weeklyWorklogs,
     target?.weeklyMinutes ?? 0,
-    currentWeekKey
+    currentWeekKey,
+    target?.dailyMinutes ?? 480
   );
 
   const achievements = useLiveQuery(() => getAchievements(), [], getAchievements());
@@ -677,23 +678,23 @@ export default function App() {
 
     const success = await copyToClipboard(text);
     if (success) {
-      addToast('Worklog SDP text copied!');
+      addToast('Worklog Manage Engine text copied!');
     } else {
       addToast('Failed to copy text', 'error');
     }
   }, [categories, addToast]);
 
-  // ===== SDP Handlers =====
+  // ===== Manage Engine Handlers =====
   const handleSaveSdpConfig = useCallback((config: Omit<SdpConfig, 'worklogTypeMap'>) => {
     setSdpConfig(prev => ({ ...prev, ...config, cookieUpdatedAt: Date.now() }));
     setSdpSettingsOpen(false);
-    addToast('SDP Settings saved successfully');
+    addToast('Manage Engine Settings saved successfully');
   }, [addToast]);
 
   const handleImportFullConfig = useCallback((config: Partial<SdpConfig>) => {
     setSdpConfig(prev => ({ ...prev, ...config, cookieUpdatedAt: Date.now() }));
     setSdpSettingsOpen(false);
-    addToast('SDP Config imported successfully');
+    addToast('Manage Engine Config imported successfully');
   }, [addToast]);
 
   const handleSaveWorklogTypeMap = useCallback((map: Record<string, string>) => {
@@ -723,7 +724,7 @@ export default function App() {
     );
 
     if (res.success) {
-      addToast('Worklog successfully posted to SDP!');
+      addToast('Worklog successfully posted to Manage Engine!');
       await updateWorklog(log.id!, {
         ...log,
         sdpPosted: true,
@@ -731,7 +732,7 @@ export default function App() {
         updatedAt: Date.now(),
       });
     } else {
-      addToast(`Failed to post to SDP: ${res.error}`, 'error');
+      addToast(`Failed to post to Manage Engine: ${res.error}`, 'error');
     }
   }, [sdpConfig, categories, addToast]);
 
@@ -748,7 +749,7 @@ export default function App() {
       }
 
       if (!sdpConfig?.cookieString || !sdpConfig?.csrfToken) {
-        addToast('Please configure SDP Settings and Sync Cookies first', 'error');
+        addToast('Please configure Manage Engine Settings and Sync Cookies first', 'error');
         return;
       }
 
@@ -845,7 +846,7 @@ export default function App() {
       <div className="max-w-7xl mx-auto w-full px-4 py-6 md:px-8 flex flex-col gap-6 relative z-10">
         
         {updateAvailable && (
-          <div className="bg-accent-500/15 border border-accent-500/30 rounded-2xl p-3.5 flex items-center justify-between shadow-lg backdrop-blur-md">
+          <div className="bg-accent-500/15 border border-accent-500/30 rounded-2xl p-3.5 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-3">
               <div className="bg-accent-500 text-white rounded-full p-2 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
@@ -951,10 +952,10 @@ export default function App() {
               )}
               <button
                 onClick={() => setCategoryColorsOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-surface-700/60 hover:bg-surface-700 active:scale-[0.98] text-text-primary transition-all cursor-pointer border border-surface-600/40 shadow-sm"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-[#0030FF] hover:bg-[#0026e6] active:scale-[0.98] text-white transition-all cursor-pointer border border-[#0030FF] shadow-sm shadow-[#0030FF]/30"
                 title="Project Manager (Manage projects, ticket IDs & colors)"
               >
-                <FolderOpen size={14} className="text-accent-400" />
+                <FolderOpen size={14} className="text-white" />
                 <span>Project Manager</span>
               </button>
             </div>
@@ -1092,9 +1093,12 @@ export default function App() {
           monthlyMaster: 0,
           consistencyIsKey: 0,
           ticketStarter: 0,
-          weeklyTargetsHit: []
+          geraldsGame: 0,
+          weeklyTargetsHit: [],
+          otThanks: 0
         }}
         allWorklogs={allWorklogs ?? []}
+        dailyTargetMinutes={target?.dailyMinutes ?? 480}
       />
 
       {/* Hidden file input for restore */}
@@ -1110,7 +1114,7 @@ export default function App() {
       {contextMenu.visible && (
         <div
           className="fixed bg-surface-800 border border-surface-600 shadow-2xl z-[150] w-44 py-1 text-left select-none pointer-events-auto rounded-lg"
-          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, transform: 'translateZ(0)', willChange: 'transform, opacity' }}
+          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
         >
           {contextMenu.type === 'block' && contextMenu.log && (
             <>

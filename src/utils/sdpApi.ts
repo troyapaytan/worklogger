@@ -24,7 +24,7 @@ export function buildSdpWorklogPayload(
   sdpConfig: SdpConfig,
   ownerId?: string
 ) {
-  // Convert to hours and minutes for SDP payload
+  // Convert to hours and minutes for Manage Engine payload
   const durationTotalMins = calculateDuration(worklog.startTime, worklog.endTime);
   const timeSpentHours = Math.floor(durationTotalMins / 60);
   const timeSpentMins = durationTotalMins % 60;
@@ -91,10 +91,10 @@ export async function postWorklogToSdp(
 ): Promise<{ success: boolean; response?: any; error?: string }> {
   try {
     if (!worklog.urlTicketId) {
-      throw new Error('URL Ticket ID is required to post to SDP.');
+      throw new Error('URL Ticket ID is required to post to Manage Engine.');
     }
     if (!sdpConfig.cookieString) {
-      throw new Error('SDP authentication is not configured. Please set cookies in SDP Settings.');
+      throw new Error('Manage Engine authentication is not configured. Please set cookies in Manage Engine Settings.');
     }
 
     const ticketType = detectTicketType(worklog.ticketId);
@@ -136,15 +136,15 @@ export async function postWorklogToSdp(
 
     const data = await res.json();
     
-    // Check if SDP API returned a logical error even with 200 OK
+    // Check if Manage Engine API returned a logical error even with 200 OK
     if (data.response_status?.status === 'failed') {
-       const msg = data.response_status.messages?.[0]?.message || 'SDP API returned failure status';
+       const msg = data.response_status.messages?.[0]?.message || 'Manage Engine API returned failure status';
        throw new Error(msg);
     }
     
     return { success: true, response: data };
   } catch (e: any) {
-    console.error('Error posting to SDP:', e);
+    console.error('Error posting to Manage Engine:', e);
     return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
@@ -156,7 +156,7 @@ export async function fetchTicketDetails(
 ): Promise<{ urlTicketId?: string; ownerId?: string; subject?: string; status?: string; error?: string }> {
   try {
     if (!sdpConfig.cookieString) {
-      throw new Error('SDP authentication is not configured.');
+      throw new Error('Manage Engine authentication is not configured.');
     }
 
     const ticketType = detectTicketType(ticketId);
@@ -274,7 +274,7 @@ export async function fetchTicketDetails(
       }
     } catch {}
 
-    return { error: `Ticket "${ticketId}" not found in SDP.` };
+    return { error: `Ticket "${ticketId}" not found in Manage Engine.` };
   } catch (e: any) {
     return { error: e.message || 'Failed to fetch ticket' };
   }
@@ -286,7 +286,7 @@ export async function fetchTicketStatusesBatch(
   onProgress?: (progressText: string, current: number, total: number) => void
 ): Promise<{ updates: Record<string, { status?: string; urlTicketId?: string; subject?: string }>; error?: string }> {
   if (!sdpConfig.cookieString) {
-    return { updates: {}, error: 'SDP authentication is not configured.' };
+    return { updates: {}, error: 'Manage Engine authentication is not configured.' };
   }
 
   const updates: Record<string, { status?: string; urlTicketId?: string; subject?: string }> = {};
@@ -472,10 +472,10 @@ export async function fetchMyAssignedTickets(
 ): Promise<{ tickets?: SdpTicketSummary[]; error?: string }> {
   try {
     if (!sdpConfig.cookieString) {
-      throw new Error('SDP authentication is not configured.');
+      throw new Error('Manage Engine authentication is not configured.');
     }
     if (!sdpConfig.ownerId) {
-      throw new Error('Owner ID is not configured. Set it in SDP Settings.');
+      throw new Error('Owner ID is not configured. Set it in Manage Engine Settings.');
     }
 
     const endpoint = ticketType === 'CH' ? 'changes' : 'requests';
@@ -529,7 +529,7 @@ export async function fetchMyAssignedTickets(
     const json = await res.json();
 
     if (json.response_status?.status === 'failed' || json.response_status?.[0]?.status === 'failed') {
-      const msg = json.response_status?.messages?.[0]?.message || json.response_status?.[0]?.messages?.[0]?.message || 'Unknown SDP error';
+      const msg = json.response_status?.messages?.[0]?.message || json.response_status?.[0]?.messages?.[0]?.message || 'Unknown Manage Engine error';
       throw new Error(msg);
     }
 

@@ -362,7 +362,7 @@ export default function ColorEditor({
     setBulkSelected(new Set());
 
     if (!sdpConfig) {
-      setBulkError('SDP is not configured.');
+      setBulkError('Manage Engine is not configured.');
       setBulkLoading(false);
       return;
     }
@@ -570,18 +570,16 @@ export default function ColorEditor({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={handleClose}
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-3xl p-6 shadow-2xl z-10 rounded-2xl border border-surface-600/50"
           >
             {/* Close button */}
@@ -594,7 +592,7 @@ export default function ColorEditor({
 
             {/* Title */}
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-accent-500/15 border border-accent-500/30 rounded-xl flex items-center justify-center text-accent-500 shadow-sm">
+              <div className="w-10 h-10 bg-[#0030FF]/15 border border-[#0030FF]/30 rounded-xl flex items-center justify-center text-[#0030FF] dark:text-[#4d7aff] shadow-sm shadow-[#0030FF]/10">
                 <FolderOpen size={18} />
               </div>
               <div>
@@ -617,14 +615,14 @@ export default function ColorEditor({
                   onKeyDown={(e) => e.key === 'Enter' && handleAddProjectAsync()}
                   placeholder="Ticket # (e.g. CH-4233) or Project Name"
                   maxLength={50}
-                  className="flex-1 px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
+                  className="flex-1 px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
                   disabled={isAdding}
                 />
                 <button
                   type="button"
                   onClick={handleAddProjectAsync}
                   disabled={isAdding || !newInput.trim()}
-                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold bg-accent-500 text-white hover:bg-accent-600 transition-all cursor-pointer rounded-xl active:scale-[0.97] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold bg-[#0030FF] text-white hover:bg-[#0026e6] transition-all cursor-pointer rounded-xl active:scale-[0.97] shadow-sm shadow-[#0030FF]/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAdding ? (
                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -642,7 +640,7 @@ export default function ColorEditor({
                 <button
                   type="button"
                   onClick={() => { setBulkOpen(true); handleBulkFetch('SR'); }}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400 text-white shadow-xs transition-all cursor-pointer active:scale-[0.97]"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-[#0030FF] hover:bg-[#0026e6] text-white shadow-xs shadow-[#0030FF]/25 transition-all cursor-pointer active:scale-[0.97]"
                 >
                   <Download size={13} />
                   <span>Bulk Import My Tickets</span>
@@ -655,9 +653,9 @@ export default function ColorEditor({
                   onClick={() => syncAllTicketStatuses()}
                   disabled={isSyncingStatuses}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-surface-800 dark:bg-surface-700/50 hover:bg-surface-700/60 dark:hover:bg-surface-600/60 text-text-primary dark:text-text-secondary hover:text-text-primary transition-all cursor-pointer border border-surface-400/80 dark:border-surface-500/50 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
-                  title="Fetch latest ticket statuses from SDP"
+                  title="Fetch latest ticket statuses from Manage Engine"
                 >
-                  <RefreshCw size={13} className={isSyncingStatuses ? 'animate-spin text-accent-500' : 'text-accent-500'} />
+                  <RefreshCw size={13} className={isSyncingStatuses ? 'animate-spin text-[#0030FF]' : 'text-[#0030FF] dark:text-[#4d7aff]'} />
                   <span>{isSyncingStatuses ? (syncProgress || 'Syncing...') : 'Refresh Statuses'}</span>
                 </button>
               )}
@@ -676,21 +674,21 @@ export default function ColorEditor({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-                    className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    className="absolute inset-0 bg-black/50 dark:bg-black/70"
                     onClick={() => setBulkOpen(false)}
                   />
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.94, y: 20 }}
+                    initial={{ opacity: 0, scale: 0.98, y: 8 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.96, y: 14 }}
-                    transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }}
+                    exit={{ opacity: 0, scale: 0.98, y: 6 }}
+                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                     className="glass-card relative w-full max-w-2xl border border-surface-600/50 rounded-2xl shadow-2xl z-10 p-5 max-h-[85vh] flex flex-col"
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between pb-3 border-b border-surface-600/40">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center border border-teal-500/30 shadow-sm">
+                        <div className="w-9 h-9 rounded-xl bg-[#0030FF]/15 text-[#0030FF] dark:text-[#4d7aff] flex items-center justify-center border border-[#0030FF]/30 shadow-sm shadow-[#0030FF]/10">
                           <Download size={16} />
                         </div>
                         <div>
@@ -726,8 +724,8 @@ export default function ColorEditor({
                           {bulkType === 'SR' && (
                             <motion.div
                               layoutId="bulkType-pill"
-                              className="absolute inset-0 bg-teal-500 rounded-lg shadow-sm -z-10"
-                              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                              className="absolute inset-0 bg-[#0030FF] rounded-lg shadow-sm -z-10"
+                              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                             />
                           )}
                           <span>Service Requests</span>
@@ -749,8 +747,8 @@ export default function ColorEditor({
                           {bulkType === 'CH' && (
                             <motion.div
                               layoutId="bulkType-pill"
-                              className="absolute inset-0 bg-teal-500 rounded-lg shadow-sm -z-10"
-                              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                              className="absolute inset-0 bg-[#0030FF] rounded-lg shadow-sm -z-10"
+                              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                             />
                           )}
                           <span>Changes</span>
@@ -767,9 +765,9 @@ export default function ColorEditor({
                         onClick={() => handleBulkFetch(bulkType)}
                         disabled={bulkLoading}
                         className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-text-secondary hover:text-text-primary bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                        title="Refetch tickets from SDP"
+                        title="Refetch tickets from Manage Engine"
                       >
-                        <RefreshCw size={12} className={bulkLoading ? 'animate-spin text-teal-400' : 'text-teal-400'} />
+                        <RefreshCw size={12} className={bulkLoading ? 'animate-spin text-[#0030FF]' : 'text-[#0030FF] dark:text-[#4d7aff]'} />
                         <span>Refresh</span>
                       </button>
                     </div>
@@ -787,7 +785,7 @@ export default function ColorEditor({
                               value={bulkSearch}
                               onChange={(e) => setBulkSearch(e.target.value)}
                               placeholder="Search title, ticket #..."
-                              className="w-full pl-8 pr-7 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-teal-500 shadow-xs"
+                              className="w-full pl-8 pr-7 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[#0030FF] shadow-xs"
                             />
                             {bulkSearch && (
                               <button
@@ -805,7 +803,7 @@ export default function ColorEditor({
                             <button
                               type="button"
                               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                              className="w-full flex items-center justify-between pl-7 pr-3 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer text-left truncate shadow-xs"
+                              className="w-full flex items-center justify-between pl-7 pr-3 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-[#0030FF] cursor-pointer text-left truncate shadow-xs"
                             >
                               <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
                                 <Filter size={12} />
@@ -825,7 +823,7 @@ export default function ColorEditor({
                                     type="checkbox"
                                     checked={bulkStatusFilter.size === 0}
                                     onChange={() => setBulkStatusFilter(new Set())}
-                                    className="mr-2 rounded border-surface-500 text-teal-500 focus:ring-teal-500 bg-surface-800 cursor-pointer"
+                                    className="mr-2 rounded border-surface-500 text-[#0030FF] focus:ring-[#0030FF] bg-surface-800 cursor-pointer"
                                   />
                                   <span className="text-xs text-text-primary group-hover:text-white">All Statuses ({bulkTickets.length})</span>
                                 </label>
@@ -846,7 +844,7 @@ export default function ColorEditor({
                                           }
                                           setBulkStatusFilter(next);
                                         }}
-                                        className="mr-2 rounded border-surface-500 text-teal-500 focus:ring-teal-500 bg-surface-800 cursor-pointer"
+                                        className="mr-2 rounded border-surface-500 text-[#0030FF] focus:ring-[#0030FF] bg-surface-800 cursor-pointer"
                                       />
                                       <span className="text-xs text-text-primary group-hover:text-white truncate">
                                         {st} ({count})
@@ -866,7 +864,7 @@ export default function ColorEditor({
                             <select
                               value={bulkDatePreset}
                               onChange={(e) => setBulkDatePreset(e.target.value as any)}
-                              className="w-full pl-7 pr-6 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer appearance-none truncate shadow-xs"
+                              className="w-full pl-7 pr-6 py-1.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded-md text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-[#0030FF] cursor-pointer appearance-none truncate shadow-xs"
                             >
                               <option value="all">All Time</option>
                               <option value="today">Today</option>
@@ -889,7 +887,7 @@ export default function ColorEditor({
                                   type="date"
                                   value={bulkDateFrom}
                                   onChange={(e) => setBulkDateFrom(e.target.value)}
-                                  className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-teal-500 shadow-xs"
+                                  className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-[#0030FF] shadow-xs"
                                 />
                               </div>
                               <div className="flex items-center gap-1 text-xs text-text-secondary">
@@ -898,7 +896,7 @@ export default function ColorEditor({
                                   type="date"
                                   value={bulkDateTo}
                                   onChange={(e) => setBulkDateTo(e.target.value)}
-                                  className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-teal-500 shadow-xs"
+                                  className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-xs font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-[#0030FF] shadow-xs"
                                 />
                               </div>
                             </div>
@@ -914,7 +912,7 @@ export default function ColorEditor({
                             <select
                               value={bulkSort}
                               onChange={(e) => setBulkSort(e.target.value as any)}
-                              className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-[11px] font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer shadow-xs"
+                              className="px-2 py-0.5 bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-600 rounded text-[11px] font-medium text-text-primary focus:outline-none focus:ring-1 focus:ring-[#0030FF] cursor-pointer shadow-xs"
                             >
                               <option value="newest">Newest First</option>
                               <option value="oldest">Oldest First</option>
@@ -938,9 +936,9 @@ export default function ColorEditor({
                           <div
                             className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
                               isAllFilteredSelected
-                                ? 'bg-teal-500 border-teal-500 text-white'
+                                ? 'bg-[#0030FF] border-[#0030FF] text-white'
                                 : isSomeFilteredSelected
-                                  ? 'bg-teal-500/30 border-teal-400 text-teal-300'
+                                  ? 'bg-[#0030FF]/30 border-[#0030FF] text-[#4d7aff]'
                                   : 'border-surface-400 group-hover:border-surface-300'
                             }`}
                           >
@@ -950,7 +948,7 @@ export default function ColorEditor({
                               <Minus size={11} className="stroke-[3]" />
                             ) : null}
                           </div>
-                          <span className="text-xs font-semibold text-text-primary group-hover:text-teal-400 transition-colors">
+                          <span className="text-xs font-semibold text-text-primary group-hover:text-[#0030FF] dark:group-hover:text-[#4d7aff] transition-colors">
                             Include all filtered ({filteredBulkTickets.length})
                           </span>
                         </button>
@@ -958,7 +956,7 @@ export default function ColorEditor({
                         {/* Selection Count & Clear */}
                         <div className="flex items-center gap-2.5">
                           <span className="text-[11px] text-text-muted font-medium">
-                            <span className="text-teal-400 font-bold">{selectedFilteredCount}</span> of {filteredBulkTickets.length} filtered selected
+                            <span className="text-[#0030FF] dark:text-[#4d7aff] font-bold">{selectedFilteredCount}</span> of {filteredBulkTickets.length} filtered selected
                             {bulkSelected.size > selectedFilteredCount && (
                               <span className="ml-1 text-[10px] text-text-muted">({bulkSelected.size} total)</span>
                             )}
@@ -980,7 +978,7 @@ export default function ColorEditor({
                     <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-1.5">
                       {bulkLoading ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-3 text-text-muted text-xs">
-                          <Loader2 size={22} className="animate-spin text-teal-400" />
+                          <Loader2 size={22} className="animate-spin text-[#0030FF] dark:text-[#4d7aff]" />
                           <span>Fetching assigned tickets from ServiceDesk Plus...</span>
                         </div>
                       ) : bulkError ? (
@@ -1014,7 +1012,7 @@ export default function ColorEditor({
                               setBulkDateFrom('');
                               setBulkDateTo('');
                             }}
-                            className="mt-3 px-3 py-1 text-xs text-teal-400 hover:text-teal-300 hover:underline cursor-pointer"
+                            className="mt-3 px-3 py-1 text-xs text-[#0030FF] dark:text-[#4d7aff] hover:underline cursor-pointer"
                           >
                             Reset all filters
                           </button>
@@ -1029,7 +1027,7 @@ export default function ColorEditor({
                                 onClick={() => handleBulkToggle(t.id)}
                                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg border transition-all cursor-pointer select-none group ${
                                   isSelected
-                                    ? 'bg-teal-500/15 border-teal-500/40 shadow-sm'
+                                    ? 'bg-[#0030FF]/15 border-[#0030FF]/40 shadow-sm'
                                     : 'bg-surface-700/40 border-surface-600/80 hover:bg-surface-700 hover:border-surface-500'
                                 }`}
                               >
@@ -1037,8 +1035,8 @@ export default function ColorEditor({
                                 <div
                                   className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
                                     isSelected
-                                      ? 'bg-teal-500 border-teal-500 text-white'
-                                      : 'border-surface-400 group-hover:border-teal-400'
+                                      ? 'bg-[#0030FF] border-[#0030FF] text-white'
+                                      : 'border-surface-400 group-hover:border-[#0030FF]'
                                   }`}
                                 >
                                   {isSelected && <Check size={11} className="stroke-[3]" />}
@@ -1087,7 +1085,7 @@ export default function ColorEditor({
                         type="button"
                         onClick={handleBulkImport}
                         disabled={bulkSelected.size === 0}
-                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/20"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-[#0030FF] hover:bg-[#0026e6] text-white shadow-lg shadow-[#0030FF]/25"
                       >
                         <Download size={14} />
                         <span>
@@ -1111,13 +1109,13 @@ export default function ColorEditor({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search projects..."
-                  className="w-full pl-8 pr-3 py-1.5 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
+                  className="w-full pl-8 pr-3 py-1.5 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
                 />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl cursor-pointer transition-all shadow-xs"
+                className="px-3 py-1.5 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 text-xs font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl cursor-pointer transition-all shadow-xs"
               >
                 <option value="all">All Status</option>
                 {Array.from(new Set(items.map(i => i.status).filter(Boolean))).map(s => (
@@ -1161,7 +1159,7 @@ export default function ColorEditor({
                     onChange={(e) => handleNameChange(item.id, e.target.value)}
                     placeholder="Project Name"
                     maxLength={40}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
+                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
                   />
 
                   {/* Editable Ticket ID field */}
@@ -1171,7 +1169,7 @@ export default function ColorEditor({
                     onChange={(e) => handleTicketIdChange(item.id, e.target.value)}
                     placeholder="e.g. CH-4233"
                     maxLength={20}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
+                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
                   />
 
                   {/* Editable URL Ticket ID field */}
@@ -1181,8 +1179,8 @@ export default function ColorEditor({
                     onChange={(e) => handleUrlTicketIdChange(item.id, e.target.value)}
                     placeholder="108026..."
                     maxLength={30}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 rounded-xl transition-all shadow-xs"
-                    title="Internal SDP Ticket ID used in request/change URLs & API endpoints"
+                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
+                    title="Internal Manage Engine Ticket ID used in request/change URLs & API endpoints"
                   />
 
                   {/* Color Picker Swatch Only */}
@@ -1234,9 +1232,9 @@ export default function ColorEditor({
             <div className="flex items-center justify-between border-t border-surface-400/50 dark:border-surface-600/40 pt-4 mt-4">
               <div className="flex items-center gap-2">
                 {isSyncingStatuses ? (
-                  <div className="flex items-center gap-1.5 text-accent-500 text-[11px] font-semibold animate-pulse">
+                  <div className="flex items-center gap-1.5 text-[#0030FF] dark:text-[#4d7aff] text-[11px] font-semibold animate-pulse">
                     <Loader2 size={13} className="animate-spin" />
-                    <span>{syncProgress || 'Syncing ticket statuses from SDP...'}</span>
+                    <span>{syncProgress || 'Syncing ticket statuses from Manage Engine...'}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold">
@@ -1255,7 +1253,7 @@ export default function ColorEditor({
                 </button>
                 <button
                   onClick={handleClose}
-                  className="px-5 py-2 text-xs font-bold bg-accent-500 text-white hover:bg-accent-600 transition-all cursor-pointer rounded-xl shadow-xs active:scale-[0.97]"
+                  className="px-5 py-2 text-xs font-bold bg-[#0030FF] text-white hover:bg-[#0026e6] transition-all cursor-pointer rounded-xl shadow-xs shadow-[#0030FF]/25 active:scale-[0.97]"
                 >
                   Save
                 </button>
@@ -1279,15 +1277,15 @@ export default function ColorEditor({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={() => setProjectToDelete(null)}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-sm border border-surface-600/50 rounded-2xl shadow-2xl z-10 p-6"
           >
             <h3 className="text-sm font-semibold text-text-primary tracking-tight mb-2">Delete Project</h3>

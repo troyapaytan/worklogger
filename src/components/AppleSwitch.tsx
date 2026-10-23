@@ -50,16 +50,13 @@ export default function AppleSwitch({
     >
       <motion.span
         transition={{
-          type: 'spring',
-          stiffness: 550,
-          damping: 32,
-          mass: 0.7,
+          duration: 0.15,
+          ease: [0.16, 1, 0.3, 1],
         }}
         animate={{
           x: checked ? offsetChecked : 2,
-          scaleX: isPressed ? 1.2 : 1,
+          scaleX: isPressed ? 1.15 : 1,
         }}
-        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         className={`${knobSize} rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.3),0_2px_6px_rgba(0,0,0,0.15)] pointer-events-none block`}
       />
     </button>

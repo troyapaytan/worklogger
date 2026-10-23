@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import type { Worklog } from '../db';
 import {
   getHourMarkers,
@@ -49,6 +49,7 @@ export default function WeeklyGantt({
   onBatchPost,
 }: WeeklyGanttProps) {
   const [postingDays, setPostingDays] = useState<Record<string, boolean>>({});
+  const [activeHoverDate, setActiveHoverDate] = useState<string | null>(null);
   const hourMarkers = getHourMarkers(START_HOUR, END_HOUR, use24h);
   const weekDays = getWeekDays(weekStart);
 
@@ -57,6 +58,18 @@ export default function WeeklyGantt({
     friction: 0.95,
     smoothWheel: true,
   });
+
+  useEffect(() => {
+    if (isPanning) {
+      setActiveHoverDate(null);
+    }
+  }, [isPanning]);
+
+  useEffect(() => {
+    const handleBlur = () => setActiveHoverDate(null);
+    window.addEventListener('blur', handleBlur);
+    return () => window.removeEventListener('blur', handleBlur);
+  }, []);
 
   // Group worklogs by date
   const logsByDate = useMemo(() => {
@@ -80,15 +93,19 @@ export default function WeeklyGantt({
 
   return (
     <div className="glass-card w-full overflow-hidden flex flex-col">
-      <div ref={containerRef} className="overflow-x-auto inertia-scroll-x">
+      <div
+        ref={containerRef}
+        className="overflow-x-auto inertia-scroll-x"
+        onPointerLeave={() => setActiveHoverDate(null)}
+      >
         <div style={{ minWidth: `${zoom * 100}%` }} className="flex flex-col">
           {/* Hour Header (Apple Translucent Frosted Bar with Inertia Pan) */}
           <div
-            className="flex border-b border-surface-600/50 bg-surface-800/85 backdrop-blur-md cursor-grab active:cursor-grabbing select-none"
+            className="flex border-b border-surface-600/50 bg-surface-800 cursor-grab active:cursor-grabbing select-none"
             {...bindDrag}
             title="Drag horizontally to pan timeline with inertia"
           >
-            <div className="w-[140px] shrink-0 px-4 py-2 border-r border-surface-600/50 sticky left-0 z-30 bg-surface-800/90 backdrop-blur-md">
+            <div className="w-[140px] shrink-0 px-4 py-2 border-r border-surface-600/50 sticky left-0 z-30 bg-surface-800">
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 Day
               </span>
@@ -145,6 +162,11 @@ export default function WeeklyGantt({
                 allPosted={allPosted}
                 theme={theme}
                 isPanning={isPanning}
+                isHoverRowActive={activeHoverDate === dateKey}
+                onHoverStart={() => setActiveHoverDate(dateKey)}
+                onHoverEnd={() => {
+                  setActiveHoverDate((prev) => (prev === dateKey ? null : prev));
+                }}
               />
             );
           })}
@@ -169,6 +191,9 @@ interface GanttRowProps {
   categories: { key: string; name: string; color: string }[];
   theme?: string;
   isPanning?: boolean;
+  isHoverRowActive: boolean;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
   onCreateWorklog: (date: string, startTime: number, endTime: number) => void;
   onEditWorklog: (log: Worklog) => void;
   onResizeWorklog: (id: number, newStart: number, newEnd: number) => void;
@@ -203,6 +228,9 @@ function GanttRow({
   allPosted,
   theme,
   isPanning,
+  isHoverRowActive,
+  onHoverStart,
+  onHoverEnd,
 }: GanttRowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragState, setDragState] = useState<{
@@ -212,16 +240,41 @@ function GanttRow({
   }>({ active: false, startMin: 0, endMin: 0 });
   const [hoverMinutes, setHoverMinutes] = useState<number | null>(null);
 
+  const isHoveringRef = useRef(false);
   const moveRafRef = useRef<number | null>(null);
   const cachedRectRef = useRef<DOMRect | null>(null);
+
+  const handlePointerLeave = useCallback(() => {
+    isHoveringRef.current = false;
+    if (moveRafRef.current !== null) {
+      cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+    }
+    cachedRectRef.current = null;
+    setHoverMinutes(null);
+    onHoverEnd();
+  }, [onHoverEnd]);
 
   useEffect(() => {
     return () => {
       if (moveRafRef.current !== null) {
         cancelAnimationFrame(moveRafRef.current);
+        moveRafRef.current = null;
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!isHoverRowActive) {
+      isHoveringRef.current = false;
+      if (moveRafRef.current !== null) {
+        cancelAnimationFrame(moveRafRef.current);
+        moveRafRef.current = null;
+      }
+      cachedRectRef.current = null;
+      setHoverMinutes(null);
+    }
+  }, [isHoverRowActive]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -240,12 +293,17 @@ function GanttRow({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (isPanning) return;
+      isHoveringRef.current = true;
+      onHoverStart();
+
       const clientX = e.clientX;
       if (moveRafRef.current !== null) {
         cancelAnimationFrame(moveRafRef.current);
       }
       moveRafRef.current = requestAnimationFrame(() => {
-        if (!containerRef.current) return;
+        moveRafRef.current = null;
+        if (!isHoveringRef.current || !containerRef.current) return;
         const rect = cachedRectRef.current || containerRef.current.getBoundingClientRect();
         const minutes = pointerPosToMinutes(clientX, rect);
 
@@ -255,7 +313,7 @@ function GanttRow({
         setHoverMinutes(minutes);
       });
     },
-    [dragState.active]
+    [dragState.active, isPanning, onHoverStart]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -270,9 +328,10 @@ function GanttRow({
     setDragState({ active: false, startMin: 0, endMin: 0 });
 
     if (end - start >= 15) {
+      handlePointerLeave();
       onCreateWorklog(dateKey, start, end);
     }
-  }, [dragState, dateKey, onCreateWorklog]);
+  }, [dragState, dateKey, onCreateWorklog, handlePointerLeave]);
 
   // Drag preview calculations
   const dragLeft = minutesToPercent(
@@ -298,21 +357,21 @@ function GanttRow({
     >
       {/* Day Label */}
       <div
-        className="w-[140px] shrink-0 px-4 py-3 border-r border-surface-600/50 flex flex-col justify-center cursor-pointer hover:bg-surface-700/50 transition-colors sticky left-0 z-30 bg-surface-800/90 backdrop-blur-md"
+        className="w-[140px] shrink-0 px-4 py-3 border-r border-surface-600/50 flex flex-col justify-center cursor-pointer hover:bg-surface-700/50 transition-colors sticky left-0 z-30 bg-surface-800"
         onClick={() => onDayClick(day)}
       >
         <div className="flex items-center gap-2">
           <span
-            className={`text-sm font-semibold tracking-tight ${
-              isToday ? 'text-accent-400' : 'text-text-primary'
+            className={`w-9 shrink-0 text-sm tracking-tight text-[#0030FF] dark:text-[#4d7aff] ${
+              isToday ? 'font-bold' : 'font-semibold'
             }`}
           >
             {getDayShortName(day)}
           </span>
           <span
-            className={`text-xs w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+            className={`text-xs w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
               isToday
-                ? 'bg-accent-500 text-white font-bold shadow-sm'
+                ? 'bg-[#0030FF] text-white font-bold shadow-sm shadow-[#0030FF]/30'
                 : 'text-text-muted bg-surface-700/50'
             }`}
           >
@@ -358,12 +417,11 @@ function GanttRow({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={() => {
-          cachedRectRef.current = null;
-          setHoverMinutes(null);
-        }}
+        onPointerLeave={handlePointerLeave}
+        onPointerCancel={handlePointerLeave}
         onContextMenu={(e) => {
           e.preventDefault();
+          handlePointerLeave();
           if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
             const minutes = pointerPosToMinutes(e.clientX, rect);
@@ -391,7 +449,7 @@ function GanttRow({
         )}
 
         {/* Hover Time Indicator */}
-        {hoverMinutes !== null && !dragState.active && (
+        {isHoverRowActive && hoverMinutes !== null && !dragState.active && (
           <div
             className="absolute top-0 bottom-0 w-px bg-accent-400/50 border-dashed border-r border-accent-400/40 z-20 pointer-events-none"
             style={{ left: `${minutesToPercent(hoverMinutes)}%` }}

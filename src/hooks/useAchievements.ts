@@ -14,11 +14,32 @@ function getIsoWeekStr(dateStr: string) {
   return `${d.getFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Calculates the tier for "OT Thanks!" achievement.
+ * Tier 0: 0 OT days (Locked)
+ * Tier 1: 1 OT day (first time)
+ * Tier 2: 5 OT days (fifth time)
+ * Tier 3: 10 OT days (tenth time)
+ * Tier N (N >= 2): (N - 1) * 5 OT days
+ * Infinite tiers, incrementing every 5.
+ */
+export function calculateOtThanksTier(otDaysCount: number): number {
+  if (otDaysCount < 1) return 0;
+  if (otDaysCount < 5) return 1;
+  return Math.floor(otDaysCount / 5) + 1;
+}
+
+export function getOtThanksRequirement(tier: number): number {
+  if (tier <= 1) return 1;
+  return (tier - 1) * 5;
+}
+
 export function useAchievements(
   allWorklogs: Worklog[],
   weeklyWorklogs: Worklog[],
   weeklyTargetMinutes: number,
-  currentWeekKey: string
+  currentWeekKey: string,
+  dailyTargetMinutes: number = 480
 ) {
   const [activeAchievement, setActiveAchievement] = useState<AchievementData | null>(null);
   const queueRef = useRef<AchievementData[]>([]);
@@ -80,6 +101,9 @@ export function useAchievements(
     // --- NEW: Gerald's Game (All-time total 72 hours) ---
     let totalAllTimeMinutes = 0;
 
+    // --- NEW: OT Thanks! (Daily minutes) ---
+    const minutesPerDay: Record<string, number> = {};
+
     for (const log of allWorklogs) {
       // Jack of All Trades
       if (!categoriesPerDay[log.date]) categoriesPerDay[log.date] = new Set();
@@ -109,9 +133,21 @@ export function useAchievements(
 
       // Gerald's Game
       totalAllTimeMinutes += duration;
+
+      // OT Thanks
+      minutesPerDay[log.date] = (minutesPerDay[log.date] || 0) + duration;
     }
 
     const uniqueTicketsCount = allUniqueTickets.size;
+
+    let otDaysCount = 0;
+    if (dailyTargetMinutes > 0) {
+      for (const date in minutesPerDay) {
+        if (minutesPerDay[date] > dailyTargetMinutes) {
+          otDaysCount++;
+        }
+      }
+    }
 
     // --- NEW: Consistency is Key (Consecutive weeks met) ---
     let maxStreak = 0;
@@ -287,6 +323,23 @@ export function useAchievements(
       });
     }
 
+    // --- OT Thanks! (Infinite tiers: 1st, 5th, 10th, 15th, etc.) ---
+    const newOtTier = calculateOtThanksTier(otDaysCount);
+    if (newOtTier > (achState.otThanks || 0)) {
+      newAchState.otThanks = newOtTier;
+      unlocked = true;
+      enqueue({
+        id: `ot_thanks_${newOtTier}`,
+        title: 'OT Thanks!',
+        description:
+          newOtTier === 1
+            ? 'Logged overtime past your daily target for the first time!'
+            : `Logged overtime past your daily target on ${(newOtTier - 1) * 5} different days!`,
+        tier: newOtTier,
+        icon: 'flame',
+      });
+    }
+
     // --- 5. Weekly Target Hit ---
     if (weeklyWorklogs.length > 0 && weeklyTargetMinutes > 0) {
       const currentWeekTotal = weeklyWorklogs.reduce((acc, log) => acc + (log.endTime - log.startTime), 0);
@@ -309,7 +362,7 @@ export function useAchievements(
     if (unlocked) {
       saveAchievements(newAchState);
     }
-  }, [allWorklogs, weeklyWorklogs, weeklyTargetMinutes, currentWeekKey]);
+  }, [allWorklogs, weeklyWorklogs, weeklyTargetMinutes, currentWeekKey, dailyTargetMinutes]);
 
   return { activeAchievement, clearActive };
 }

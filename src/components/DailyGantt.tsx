@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit3, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Edit3, CheckCircle2 } from 'lucide-react';
 import type { Worklog } from '../db';
 import {
   getHourMarkers,
@@ -13,7 +13,7 @@ import {
   END_HOUR,
 } from '../utils/ganttMath';
 import { findAllConflicts } from '../utils/conflicts';
-import { formatDateFull, formatDateKey, getDayShortName } from '../utils/dateUtils';
+import { formatDateFull, formatDateKey } from '../utils/dateUtils';
 import { addDays, subDays } from 'date-fns';
 import WorklogBlock from './WorklogBlock';
 import { useInertiaScroll } from '../hooks/useInertiaScroll';
@@ -88,16 +88,40 @@ export default function DailyGantt({
   }>({ active: false, startMin: 0, endMin: 0 });
   const [hoverMinutes, setHoverMinutes] = useState<number | null>(null);
 
+  const isHoveringRef = useRef(false);
   const moveRafRef = useRef<number | null>(null);
   const cachedRectRef = useRef<DOMRect | null>(null);
+
+  const handlePointerLeave = useCallback(() => {
+    isHoveringRef.current = false;
+    if (moveRafRef.current !== null) {
+      cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+    }
+    cachedRectRef.current = null;
+    setHoverMinutes(null);
+  }, []);
 
   useEffect(() => {
     return () => {
       if (moveRafRef.current !== null) {
         cancelAnimationFrame(moveRafRef.current);
+        moveRafRef.current = null;
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (isPanning) {
+      handlePointerLeave();
+    }
+  }, [isPanning, handlePointerLeave]);
+
+  useEffect(() => {
+    const handleBlur = () => handlePointerLeave();
+    window.addEventListener('blur', handleBlur);
+    return () => window.removeEventListener('blur', handleBlur);
+  }, [handlePointerLeave]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -114,12 +138,15 @@ export default function DailyGantt({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (isPanning) return;
+      isHoveringRef.current = true;
       const clientX = e.clientX;
       if (moveRafRef.current !== null) {
         cancelAnimationFrame(moveRafRef.current);
       }
       moveRafRef.current = requestAnimationFrame(() => {
-        if (!containerRef.current) return;
+        moveRafRef.current = null;
+        if (!isHoveringRef.current || !containerRef.current) return;
         const rect = cachedRectRef.current || containerRef.current.getBoundingClientRect();
         const minutes = pointerPosToMinutes(clientX, rect);
 
@@ -129,7 +156,7 @@ export default function DailyGantt({
         setHoverMinutes(minutes);
       });
     },
-    [dragState.active]
+    [dragState.active, isPanning]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -143,9 +170,10 @@ export default function DailyGantt({
     const end = Math.max(dragState.startMin, dragState.endMin);
     setDragState({ active: false, startMin: 0, endMin: 0 });
     if (end - start >= 15) {
+      handlePointerLeave();
       onCreateWorklog(dateKey, start, end);
     }
-  }, [dragState, dateKey, onCreateWorklog]);
+  }, [dragState, dateKey, onCreateWorklog, handlePointerLeave]);
 
   const dragLeft = minutesToPercent(Math.min(dragState.startMin, dragState.endMin));
   const dragRight = minutesToPercent(Math.max(dragState.startMin, dragState.endMin));
@@ -162,7 +190,7 @@ export default function DailyGantt({
   return (
     <div className="glass-card w-full overflow-hidden">
       {/* Day Header (Apple Translucent Toolbar) */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-600/40 bg-surface-800/85 backdrop-blur-md">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-600/40 bg-surface-800">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToWeek}
@@ -235,12 +263,11 @@ export default function DailyGantt({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onPointerLeave={() => {
-            cachedRectRef.current = null;
-            setHoverMinutes(null);
-          }}
+          onPointerLeave={handlePointerLeave}
+          onPointerCancel={handlePointerLeave}
           onContextMenu={(e) => {
             e.preventDefault();
+            handlePointerLeave();
             if (containerRef.current) {
               const rect = containerRef.current.getBoundingClientRect();
               const minutes = pointerPosToMinutes(e.clientX, rect);
@@ -355,19 +382,13 @@ export default function DailyGantt({
               const catColor = catObj?.color || '#0ea5e9';
 
               return (
-                <motion.div
+                <div
                   key={log.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ delay: i * 0.03 }}
                   className={`flex items-start gap-4 px-5 py-3 border-b border-surface-700/30 last:border-b-0 hover:bg-surface-700/30 transition-colors relative ${
                     hasConflict ? 'bg-rose-500/5' : ''
                   }`}
                   style={{
                     borderLeft: `4px solid ${catColor}`,
-                    transform: 'translateZ(0)',
-                    willChange: 'transform, opacity',
                   }}
                 >
                   {/* Time column */}
@@ -413,7 +434,7 @@ export default function DailyGantt({
                       {log.sdpPosted && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-400 font-bold shrink-0 flex items-center gap-1 border border-teal-500/30">
                           <CheckCircle2 size={10} />
-                          SDP
+                          Manage Engine
                         </span>
                       )}
 
@@ -447,7 +468,7 @@ export default function DailyGantt({
                       <Trash2 size={13} className="text-text-muted hover:text-rose-400" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               );
             })
           )}

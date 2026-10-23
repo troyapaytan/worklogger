@@ -70,18 +70,16 @@ export default function SdpSettingsModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-xl max-h-[90vh] p-6 shadow-2xl z-10 rounded-2xl flex flex-col border border-surface-600/50"
           >
             {/* Close button */}
@@ -99,10 +97,10 @@ export default function SdpSettingsModal({
               </div>
               <div>
                 <h2 className="text-base font-semibold text-text-primary tracking-tight leading-tight">
-                  ServiceDesk Plus (SDP) Settings
+                  Manage Engine Settings
                 </h2>
                 <p className="text-[12px] text-text-secondary mt-0.5 font-normal">
-                  Configure authentication and global settings for posting worklogs to SDP.
+                  Configure authentication and global settings for posting worklogs to Manage Engine.
                 </p>
               </div>
             </div>
@@ -134,10 +132,10 @@ export default function SdpSettingsModal({
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 pt-2 text-[11px] text-text-secondary leading-relaxed space-y-2 border-t border-surface-600/40">
-                        <p>1. Open your SmRetail ServiceDesk Plus in your browser and log in.</p>
+                        <p>1. Open Manage Engine in your browser and log in.</p>
                         <p>2. Open Developer Tools (Press <strong className="text-text-primary">F12</strong> or <strong className="text-text-primary">Ctrl+Shift+I</strong>).</p>
                         <p>3. Go to the <strong className="text-text-primary">Network</strong> tab.</p>
-                        <p>4. Perform any action in SDP (like clicking a ticket or refreshing the page).</p>
+                        <p>4. Perform any action in Manage Engine (like clicking a ticket or refreshing the page).</p>
                         <p>5. Click on any of the new network requests that appear.</p>
                         <p>6. Scroll down to the <strong className="text-text-primary">Request Headers</strong> section.</p>
                         <p>7. Find the <strong className="text-text-primary">Cookie</strong> header, right-click its value, and select <strong className="text-text-primary">Copy value</strong>.</p>
@@ -154,7 +152,7 @@ export default function SdpSettingsModal({
                   Session Cookie String
                 </label>
                 <p className="text-[11px] text-text-secondary dark:text-text-muted mb-2 leading-relaxed font-normal">
-                  Paste the full <code className="bg-surface-700/50 px-1.5 py-0.5 rounded text-accent-500 font-mono text-[10px]">Cookie</code> header from your browser DevTools (Network tab) for any recent SDP request.
+                  Paste the full <code className="bg-surface-700/50 px-1.5 py-0.5 rounded text-accent-500 font-mono text-[10px]">Cookie</code> header from your browser DevTools (Network tab) for any recent Manage Engine request.
                 </p>
                 <textarea
                   value={cookieString}
@@ -214,7 +212,7 @@ export default function SdpSettingsModal({
                       className="w-full px-3 py-2 bg-surface-800 dark:bg-surface-700/40 border border-surface-400/80 dark:border-surface-500/50 rounded-xl text-xs text-text-primary font-mono font-medium focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-500 transition-all shadow-xs"
                     />
                     <p className="mt-1 text-[10px] text-text-secondary dark:text-text-muted">
-                      Your SDP Technician ID. Required for worklogs.
+                      Your Manage Engine Technician ID. Required for worklogs.
                     </p>
                   </div>
                 </div>    
@@ -226,7 +224,7 @@ export default function SdpSettingsModal({
                     className="flex items-center justify-center gap-2 px-4 py-2.5 w-full bg-surface-800 dark:bg-surface-700/40 hover:bg-surface-700/60 dark:hover:bg-surface-600/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold text-text-primary rounded-xl transition-all cursor-pointer active:scale-[0.98] shadow-xs"
                   >
                     <List size={14} className="text-accent-500" />
-                    <span>Map Worklog Types to SDP IDs</span>
+                    <span>Map Worklog Types to Manage Engine IDs</span>
                   </button>
                 </div>
               </div>

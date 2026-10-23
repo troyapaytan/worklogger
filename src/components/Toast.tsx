@@ -59,12 +59,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             return (
               <motion.div
                 key={toast.id}
-                initial={{ opacity: 0, y: 16, scale: 0.94 }}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.94 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-2xl shadow-2xl min-w-[280px] max-w-[400px] ${colorMap[toast.type]}`}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border bg-surface-800 shadow-xl min-w-[280px] max-w-[400px] ${colorMap[toast.type]}`}
               >
                 <Icon size={18} className="shrink-0" />
                 <span className="text-xs font-semibold text-text-primary flex-1 tracking-normal">

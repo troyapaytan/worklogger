@@ -21,17 +21,15 @@ export default function WelcomeModal({ isOpen, onCreateEmpty, onCreateDemo }: We
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-3xl overflow-hidden shadow-2xl z-10 rounded-2xl flex flex-col max-h-[90vh] border border-surface-600/50"
           >
             {/* Header Banner */}
@@ -61,7 +59,7 @@ export default function WelcomeModal({ isOpen, onCreateEmpty, onCreateDemo }: We
                   <Settings size={24} className="text-accent-400 mb-3" />
                   <h3 className="text-sm font-semibold tracking-tight text-text-primary mb-2">Set Up Projects</h3>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    Click the <strong>Folder icon</strong> in the header to create your projects and assign default SDP ticket numbers.
+                    Click the <strong>Folder icon</strong> in the header to create your projects and assign default Manage Engine ticket numbers.
                   </p>
                 </div>
 
@@ -83,9 +81,9 @@ export default function WelcomeModal({ isOpen, onCreateEmpty, onCreateDemo }: We
                     3
                   </div>
                   <Cloud size={24} className="text-blue-400 mb-3" />
-                  <h3 className="text-sm font-semibold tracking-tight text-text-primary mb-2">Sync to SDP</h3>
+                  <h3 className="text-sm font-semibold tracking-tight text-text-primary mb-2">Sync to Manage Engine</h3>
                   <p className="text-xs text-text-secondary leading-relaxed">
-                    Once you configure your Session Cookies in the settings, you can one-click push any worklog directly to SDP.
+                    Once you configure your Session Cookies in the settings, you can one-click push any worklog directly to Manage Engine.
                   </p>
                 </div>
               </div>

@@ -103,7 +103,7 @@ export default function Header({
   const targetHours = (weeklyTarget / 60).toFixed(1);
 
   return (
-    <header className="glass-card px-6 py-3.5 w-full relative z-50 transition-all">
+    <header className="sm-electric-blue-header px-6 py-3.5 w-full relative z-50 transition-all">
       {/* Main Header Row */}
       <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
         {/* Left: Weekly Target (Apple Activity Ring) */}
@@ -115,9 +115,8 @@ export default function Header({
                 cy="18"
                 r="14.5"
                 strokeWidth="3.5"
-                stroke="currentColor"
+                stroke="rgba(255, 255, 255, 0.25)"
                 fill="transparent"
-                className="text-surface-600/40"
               />
               <circle
                 cx="18"
@@ -129,33 +128,33 @@ export default function Header({
                 strokeLinecap="round"
                 className={`transition-all duration-1000 ease-out ${
                   weeklyPercent >= 100
-                    ? 'text-emerald-500 drop-shadow-[0_0_4px_rgba(48,209,88,0.5)]'
+                    ? 'text-emerald-300 drop-shadow-[0_0_6px_rgba(110,231,183,0.85)]'
                     : weeklyPercent >= 80
-                      ? 'text-accent-500 drop-shadow-[0_0_4px_rgba(10,132,255,0.4)]'
+                      ? 'text-sky-200 drop-shadow-[0_0_6px_rgba(186,230,253,0.85)]'
                       : weeklyPercent >= 50
-                        ? 'text-amber-500 drop-shadow-[0_0_4px_rgba(255,159,10,0.4)]'
-                        : 'text-rose-500 drop-shadow-[0_0_4px_rgba(255,69,58,0.4)]'
+                        ? 'text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.85)]'
+                        : 'text-rose-300 drop-shadow-[0_0_6px_rgba(253,164,175,0.85)]'
                 }`}
                 strokeDasharray={2 * Math.PI * 14.5}
                 strokeDashoffset={2 * Math.PI * 14.5 * (1 - Math.min(weeklyPercent, 100) / 100)}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-[10px] font-bold text-text-primary">
+              <span className="text-[10px] font-bold text-white">
                 {Math.round(weeklyPercent)}%
               </span>
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] text-text-muted font-semibold uppercase tracking-wider leading-tight">
+            <span className="text-[10px] text-white/80 font-semibold uppercase tracking-wider leading-tight">
               Weekly Target
             </span>
-            <span className="text-xs font-semibold text-text-primary leading-tight mt-0.5">
+            <span className="text-xs font-bold text-white leading-tight mt-0.5">
               {weeklyHours} / {targetHours} hrs
             </span>
             <button
               onClick={onEditTargets}
-              className="mt-1 flex items-center gap-1 text-[9px] text-accent-400 hover:text-accent-300 transition-colors cursor-pointer w-fit uppercase font-semibold active:scale-95"
+              className="mt-1 flex items-center gap-1 text-[9px] text-white/95 hover:text-white bg-white/15 hover:bg-white/25 border border-white/25 px-2 py-0.5 rounded-lg transition-all cursor-pointer w-fit uppercase font-semibold active:scale-95 shadow-xs"
             >
               <Target size={10} />
               Edit Targets
@@ -167,20 +166,20 @@ export default function Header({
         <div className="w-full sm:w-auto flex items-center justify-center gap-1.5 order-3 sm:order-none sm:absolute sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-10">
           <button
             onClick={onPrevWeek}
-            className="p-1.5 rounded-full hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer text-text-secondary hover:text-text-primary"
+            className="p-1.5 rounded-full hover:bg-white/20 active:scale-95 transition-all cursor-pointer text-white/90 hover:text-white"
             title="Previous week"
           >
             <ChevronLeft size={18} />
           </button>
           <div className="text-center min-w-[190px] px-2 py-0.5">
-            <div className="text-sm font-semibold tracking-tight text-text-primary">
+            <div className="text-sm font-bold tracking-tight text-white drop-shadow-xs">
               {weekLabel}
             </div>
-            <div className="text-[11px] font-medium text-text-muted mt-0.5">{weekKey}</div>
+            <div className="text-[11px] font-semibold text-white/80 mt-0.5">{weekKey}</div>
           </div>
           <button
             onClick={onNextWeek}
-            className="p-1.5 rounded-full hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer text-text-secondary hover:text-text-primary"
+            className="p-1.5 rounded-full hover:bg-white/20 active:scale-95 transition-all cursor-pointer text-white/90 hover:text-white"
             title="Next week"
           >
             <ChevronRight size={18} />
@@ -193,25 +192,24 @@ export default function Header({
           <div className="relative z-50" ref={themeMenuRef}>
             <button
               onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-              className="p-2 hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer rounded-full"
+              className="p-2 hover:bg-white/20 active:scale-95 transition-all cursor-pointer rounded-full text-white"
               title="Change Theme"
             >
               {theme === 'light' ? (
-                <Sun size={16} className="text-amber-500 drop-shadow-[0_0_4px_rgba(255,149,0,0.4)]" />
+                <Sun size={16} className="text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.85)]" />
               ) : (
-                <Moon size={16} className="text-accent-400 drop-shadow-[0_0_4px_rgba(10,132,255,0.4)]" />
+                <Moon size={16} className="text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.85)]" />
               )}
             </button>
 
             <AnimatePresence>
               {themeMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.94, y: -8 }}
+                  initial={{ opacity: 0, scale: 0.98, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: -6 }}
-                  transition={{ type: 'spring', stiffness: 440, damping: 32, mass: 0.7 }}
-                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-                  className="absolute right-0 mt-2.5 w-44 bg-surface-800/90 backdrop-blur-2xl border border-surface-600/60 rounded-2xl shadow-2xl z-[100] overflow-hidden p-1.5 origin-top-right"
+                  exit={{ opacity: 0, scale: 0.98, y: -4 }}
+                  transition={{ duration: 0.12, ease: 'easeOut' }}
+                  className="absolute right-0 mt-2.5 w-44 bg-surface-800 border border-surface-600/60 rounded-2xl shadow-xl z-[100] overflow-hidden p-1.5 origin-top-right text-text-primary"
                 >
                   <div className="space-y-0.5">
                     {(['dark', 'light'] as const).map((t) => (
@@ -223,7 +221,7 @@ export default function Header({
                         }}
                         className={`w-full px-3 py-2 text-left text-xs font-medium rounded-xl transition-all cursor-pointer flex items-center justify-between ${
                           theme === t
-                            ? 'bg-accent-500 text-white font-semibold shadow-sm'
+                            ? 'bg-[#0030FF] text-white font-semibold shadow-sm'
                             : 'text-text-primary hover:bg-surface-700/60 active:scale-[0.98]'
                         }`}
                       >
@@ -237,29 +235,28 @@ export default function Header({
             </AnimatePresence>
           </div>
 
-          <div className="h-5 w-px bg-surface-600/50 my-auto" />
+          <div className="h-5 w-px bg-white/25 my-auto" />
 
           {/* User Profile Dropdown */}
           <div className="relative z-50" ref={profileMenuRef}>
             <button
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="p-1 hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer rounded-full flex items-center justify-center"
+              className="p-1 hover:bg-white/20 active:scale-95 transition-all cursor-pointer rounded-full flex items-center justify-center"
               title="User Profile & Settings"
             >
-              <div className="w-7 h-7 rounded-full bg-surface-700/80 border border-surface-500/40 flex items-center justify-center shadow-sm">
-                <User size={14} className="text-text-secondary" />
+              <div className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 flex items-center justify-center shadow-sm text-white">
+                <User size={14} className="text-white" />
               </div>
             </button>
 
             <AnimatePresence>
               {profileMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.94, y: -8 }}
+                  initial={{ opacity: 0, scale: 0.98, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: -6 }}
-                  transition={{ type: 'spring', stiffness: 440, damping: 32, mass: 0.7 }}
-                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-                  className="absolute right-0 mt-2.5 w-72 bg-surface-800/90 backdrop-blur-2xl border border-surface-600/60 rounded-2xl shadow-2xl z-[100] overflow-hidden flex flex-col p-2 origin-top-right"
+                  exit={{ opacity: 0, scale: 0.98, y: -4 }}
+                  transition={{ duration: 0.12, ease: 'easeOut' }}
+                  className="absolute right-0 mt-2.5 w-72 bg-surface-800 border border-surface-600/60 rounded-2xl shadow-xl z-[100] overflow-hidden flex flex-col p-2 origin-top-right"
                 >
                   <div className="px-3.5 py-3 rounded-xl bg-surface-700/40 border border-surface-600/30 mb-2">
                     <div className="flex items-center justify-between gap-2">
@@ -331,7 +328,7 @@ export default function Header({
                     >
                       <span className="text-[11px] font-semibold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
                         <Settings size={14} className="text-teal-400" />
-                        SDP Settings
+                        Manage Engine Settings
                       </span>
                       <ChevronRight size={14} className="text-text-secondary" />
                     </button>

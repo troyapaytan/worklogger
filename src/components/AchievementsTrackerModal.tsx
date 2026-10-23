@@ -1,16 +1,24 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Target, Zap, Clock, Award, X, Crown, Shield, Star, Medal } from 'lucide-react';
+import { Trophy, Target, Zap, Clock, Award, X, Crown, Shield, Star, Medal, Flame } from 'lucide-react';
 import type { AchievementsState, Worklog } from '../db';
+import { toRoman } from '../utils/roman';
 
 interface AchievementsTrackerModalProps {
   isOpen: boolean;
   onClose: () => void;
   achievements: AchievementsState;
   allWorklogs: Worklog[]; // Pass this to calculate current progress
+  dailyTargetMinutes?: number;
 }
 
-export default function AchievementsTrackerModal({ isOpen, onClose, achievements, allWorklogs }: AchievementsTrackerModalProps) {
+export default function AchievementsTrackerModal({
+  isOpen,
+  onClose,
+  achievements,
+  allWorklogs,
+  dailyTargetMinutes = 480,
+}: AchievementsTrackerModalProps) {
   // Let's quickly calculate the current metrics so we can show exact progress numbers!
   const progress = useMemo(() => {
     let maxCategories = 0;
@@ -25,6 +33,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
     const logsPerDay: Record<string, number> = {};
     const minutesPerWeek: Record<string, number> = {};
     const minutesPerMonth: Record<string, number> = {};
+    const minutesPerDay: Record<string, number> = {};
 
     for (const log of allWorklogs) {
       if (!categoriesPerDay[log.date]) categoriesPerDay[log.date] = new Set();
@@ -52,12 +61,23 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       minutesPerMonth[monthStr] = (minutesPerMonth[monthStr] || 0) + duration;
       maxMonthlyMinutes = Math.max(maxMonthlyMinutes, minutesPerMonth[monthStr]);
 
+      minutesPerDay[log.date] = (minutesPerDay[log.date] || 0) + duration;
+
       totalAllTimeMinutes += duration;
 
       if (log.ticketId) allUniqueTickets.add(log.ticketId);
     }
 
     const uniqueTicketsCount = allUniqueTickets.size;
+
+    let otDaysCount = 0;
+    if (dailyTargetMinutes > 0) {
+      for (const date in minutesPerDay) {
+        if (minutesPerDay[date] > dailyTargetMinutes) {
+          otDaysCount++;
+        }
+      }
+    }
 
     let maxStreak = 0;
     const getWeekDiff = (w1: string, w2: string) => {
@@ -81,10 +101,35 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       }
     }
 
-    return { maxCategories, maxLogs, maxDuration, maxWeeklyMinutes, maxMonthlyMinutes, totalAllTimeMinutes, uniqueTicketsCount, maxStreak };
-  }, [allWorklogs, achievements.weeklyTargetsHit]);
+    return {
+      maxCategories,
+      maxLogs,
+      maxDuration,
+      maxWeeklyMinutes,
+      maxMonthlyMinutes,
+      totalAllTimeMinutes,
+      uniqueTicketsCount,
+      maxStreak,
+      otDaysCount,
+    };
+  }, [allWorklogs, achievements.weeklyTargetsHit, dailyTargetMinutes]);
 
   const cards = [
+    {
+      id: 'otThanks',
+      title: 'OT Thanks!',
+      description: 'Log work past your daily target on a single day.',
+      icon: Flame,
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/30',
+      glow: 'from-amber-500/20',
+      tiers: [1, 5, 10, 15, 20],
+      currentTier: achievements.otThanks || 0,
+      currentValue: progress.otDaysCount,
+      unit: 'days',
+      isInfinite: true,
+    },
     {
       id: 'jack',
       title: 'Jack of All Trades',
@@ -97,7 +142,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [4, 8, 12],
       currentTier: achievements.jackOfAllTrades,
       currentValue: progress.maxCategories,
-      unit: 'types'
+      unit: 'types',
     },
     {
       id: 'cruncher',
@@ -111,7 +156,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [5, 10, 20, 40, 80],
       currentTier: achievements.ticketCruncher,
       currentValue: progress.maxLogs,
-      unit: 'logs'
+      unit: 'logs',
     },
     {
       id: 'deep',
@@ -125,7 +170,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [2, 4, 8, 16, 32],
       currentTier: achievements.deepWork,
       currentValue: progress.maxDuration / 60,
-      unit: 'hrs'
+      unit: 'hrs',
     },
     {
       id: 'marathon',
@@ -139,7 +184,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [10, 20, 40, 80, 160],
       currentTier: achievements.marathoner,
       currentValue: progress.maxWeeklyMinutes / 60,
-      unit: 'hrs'
+      unit: 'hrs',
     },
     {
       id: 'monthly',
@@ -153,7 +198,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [40, 80, 120, 160, 200],
       currentTier: achievements.monthlyMaster,
       currentValue: progress.maxMonthlyMinutes / 60,
-      unit: 'hrs'
+      unit: 'hrs',
     },
     {
       id: 'consistency',
@@ -167,7 +212,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [2, 4, 6, 8],
       currentTier: achievements.consistencyIsKey,
       currentValue: progress.maxStreak,
-      unit: 'wks'
+      unit: 'wks',
     },
     {
       id: 'starter',
@@ -181,7 +226,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [10, 25, 50, 100, 200],
       currentTier: achievements.ticketStarter,
       currentValue: progress.uniqueTicketsCount,
-      unit: 'tks'
+      unit: 'tks',
     },
     {
       id: 'gerald',
@@ -195,7 +240,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
       tiers: [72],
       currentTier: achievements.geraldsGame || 0,
       currentValue: progress.totalAllTimeMinutes / 60,
-      unit: 'hrs'
+      unit: 'hrs',
     },
   ];
 
@@ -209,19 +254,17 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-          style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md cursor-pointer"
+          className="absolute inset-0 bg-black/50 dark:bg-black/70 cursor-pointer"
         />
 
         {/* Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.94, y: 20 }}
+          initial={{ opacity: 0, scale: 0.98, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 14 }}
-          transition={{ type: 'spring', damping: 32, stiffness: 420, mass: 0.85 }}
-          style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+          exit={{ opacity: 0, scale: 0.98, y: 6 }}
+          transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
           className="glass-card relative w-full max-w-4xl border border-surface-600/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Header */}
@@ -249,9 +292,43 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
           <div className="p-6 overflow-y-auto space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {cards.map((card) => {
-                const nextRequirement = card.currentTier < card.tiers.length ? card.tiers[card.currentTier] : card.tiers[card.tiers.length - 1];
-                const isMaxed = card.currentTier === card.tiers.length;
-                const progressPercent = isMaxed ? 100 : Math.min(100, (card.currentValue / nextRequirement) * 100);
+                const nextRequirement = card.isInfinite
+                  ? card.currentTier === 0
+                    ? 1
+                    : card.currentTier * 5
+                  : card.currentTier < card.tiers.length
+                  ? card.tiers[card.currentTier]
+                  : card.tiers[card.tiers.length - 1];
+
+                const isMaxed = !card.isInfinite && card.currentTier === card.tiers.length;
+                const progressPercent = isMaxed
+                  ? 100
+                  : Math.min(100, (card.currentValue / nextRequirement) * 100);
+
+                // Compute markers
+                let markerTiers: { tierNum: number; value: number; isReached: boolean }[] = [];
+                let maxMarkerVal = 1;
+
+                if (!card.isInfinite) {
+                  maxMarkerVal = card.tiers[card.tiers.length - 1] || 1;
+                  markerTiers = card.tiers.map((t, i) => ({
+                    tierNum: i + 1,
+                    value: t,
+                    isReached: card.currentTier > i,
+                  }));
+                } else {
+                  // Infinite tiers sliding window
+                  const currentT = card.currentTier;
+                  const startT = currentT < 5 ? 1 : currentT - 3;
+                  const tierNums = [startT, startT + 1, startT + 2, startT + 3, startT + 4];
+                  const getReq = (t: number) => (t === 1 ? 1 : (t - 1) * 5);
+                  maxMarkerVal = getReq(tierNums[tierNums.length - 1]);
+                  markerTiers = tierNums.map((t) => ({
+                    tierNum: t,
+                    value: getReq(t),
+                    isReached: currentT >= t,
+                  }));
+                }
 
                 return (
                   <div key={card.id} className={`relative rounded-2xl border ${isMaxed ? card.border : 'border-surface-600/40'} ${card.bg} p-5 overflow-hidden flex flex-col gap-4 transition-all duration-300 hover:shadow-lg`}>
@@ -277,7 +354,7 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
                           
                           {card.currentTier > 0 ? (
                             <div className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold font-mono border shrink-0 ${isMaxed ? card.border + ' ' + card.color : 'border-surface-600/60 text-text-secondary bg-surface-800/80'}`}>
-                              TIER {['I','II','III','IV','V'][card.currentTier - 1]}
+                              TIER {toRoman(card.currentTier)}
                             </div>
                           ) : (
                             <div className="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold font-mono border border-surface-600/50 text-text-muted bg-surface-800/80 shrink-0">
@@ -303,10 +380,26 @@ export default function AchievementsTrackerModal({ isOpen, onClose, achievements
                           
                           {/* Segment markers */}
                           <div className="flex justify-between mt-1.5 px-1 relative h-3">
-                            {card.tiers.map((tier, i) => (
-                              <div key={i} className="absolute flex flex-col items-center -translate-x-1/2" style={{ left: `${(tier / card.tiers[card.tiers.length - 1]) * 100}%` }}>
-                                <div className={`w-0.5 h-1 ${card.currentTier > i ? card.color : 'bg-surface-600'}`} />
-                                <span className={`text-[8px] font-mono mt-0.5 ${card.currentTier > i ? card.color : 'text-surface-500'}`}>T{i+1}</span>
+                            {markerTiers.map((marker, i) => (
+                              <div
+                                key={i}
+                                className="absolute flex flex-col items-center -translate-x-1/2"
+                                style={{
+                                  left: `${Math.max(4, Math.min(96, (marker.value / maxMarkerVal) * 100))}%`,
+                                }}
+                              >
+                                <div
+                                  className={`w-0.5 h-1 ${
+                                    marker.isReached ? card.color : 'bg-surface-600'
+                                  }`}
+                                />
+                                <span
+                                  className={`text-[8px] font-mono mt-0.5 ${
+                                    marker.isReached ? card.color : 'text-surface-500'
+                                  }`}
+                                >
+                                  T{marker.tierNum}
+                                </span>
                               </div>
                             ))}
                           </div>

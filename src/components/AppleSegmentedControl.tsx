@@ -46,7 +46,7 @@ export default function AppleSegmentedControl<T extends string | number>({
               isSm ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1 text-xs'
             } ${
               isActive
-                ? 'text-text-primary font-semibold'
+                ? 'text-white font-semibold'
                 : 'text-text-secondary hover:text-text-primary'
             } active:scale-[0.97]`}
           >
@@ -54,13 +54,10 @@ export default function AppleSegmentedControl<T extends string | number>({
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full bg-surface-600/90 shadow-[0_1px_3px_rgba(0,0,0,0.2),0_1px_2px_rgba(0,0,0,0.12)] -z-10"
-                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+                className="absolute inset-0 rounded-full bg-[#0030FF] shadow-[0_2px_8px_rgba(0,48,255,0.35)] -z-10"
                 transition={{
-                  type: 'spring',
-                  stiffness: 480,
-                  damping: 34,
-                  mass: 0.8,
+                  duration: 0.15,
+                  ease: [0.16, 1, 0.3, 1],
                 }}
               />
             )}

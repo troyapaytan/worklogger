@@ -1,16 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Plus, Minus, FileText, ChevronDown, FolderOpen, Wrench, Tag, Send, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
 import type { Worklog } from '../db';
 import { formatMinutesToTime, calculateDuration, clampMinutes } from '../utils/ganttMath';
-
-interface CategoryOption {
-  key: string;
-  name: string;
-  color?: string;
-  ticketId?: string;
-  urlTicketId?: string;
-}
+import ProjectSelector, { type CategoryOption } from './ProjectSelector';
+export type { CategoryOption };
 
 interface WorklogModalProps {
   isOpen: boolean;
@@ -62,16 +56,33 @@ export default function WorklogModal({
   const [ticketId, setTicketId] = useState('');
   const [urlTicketId, setUrlTicketId] = useState('');
   const [category, setCategory] = useState('');
+  const [projectError, setProjectError] = useState(false);
   const [worklogType, setWorklogType] = useState('Coding');
   const [startTime, setStartTime] = useState(540);
   const [endTime, setEndTime] = useState(600);
   const [date, setDate] = useState('');
 
+  const modalSessionRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      modalSessionRef.current = null;
+      return;
+    }
+
+    const currentSessionKey =
+      mode === 'edit' && editWorklog
+        ? `edit-${editWorklog.id}-${editWorklog.updatedAt ?? ''}`
+        : `create-${initialData?.date ?? ''}-${initialData?.startTime ?? ''}-${initialData?.endTime ?? ''}`;
+
+    // Prevent resetting user edits if the modal is already open for this session (e.g. on window focus/tab switch)
+    if (modalSessionRef.current === currentSessionKey) {
+      return;
+    }
+    modalSessionRef.current = currentSessionKey;
 
     if (mode === 'edit' && editWorklog) {
-      setDescription(editWorklog.description);
+      setDescription(editWorklog.description ?? '');
       setTicketId(editWorklog.ticketId ?? '');
       setUrlTicketId(editWorklog.urlTicketId ?? '');
       setCategory(editWorklog.category ?? '');
@@ -79,37 +90,37 @@ export default function WorklogModal({
       setStartTime(editWorklog.startTime);
       setEndTime(editWorklog.endTime);
       setDate(editWorklog.date);
-    } else if (initialData) {
-      setDescription(initialData.description ?? '');
-      const initCat = initialData.category ?? (categories.length > 0 ? categories[0].key : '');
+    } else {
+      setDescription(initialData?.description ?? '');
+      // Default to empty string ("— Select Project —") rather than defaulting to first ticket (GCASH)
+      const initCat = initialData?.category ?? '';
       setCategory(initCat);
 
-      // Auto-fill ticket ID & URL ticket ID from category if available
-      const matchedCat = categories.find(
-        (c) => c.key === initCat || c.key.toLowerCase() === initCat.toLowerCase()
-      );
-      setTicketId(initialData.ticketId ?? matchedCat?.ticketId ?? '');
-      setUrlTicketId(initialData.urlTicketId ?? matchedCat?.urlTicketId ?? '');
+      // Auto-fill ticket ID & URL ticket ID from category only if explicitly pre-selected
+      const matchedCat = initCat
+        ? categories.find(
+            (c) => c.key === initCat || c.key.toLowerCase() === initCat.toLowerCase()
+          )
+        : undefined;
+      setTicketId(initialData?.ticketId ?? matchedCat?.ticketId ?? '');
+      setUrlTicketId(initialData?.urlTicketId ?? matchedCat?.urlTicketId ?? '');
 
-      setWorklogType(initialData.worklogType ?? 'Coding');
-      setStartTime(initialData.startTime ?? 540);
-      setEndTime(initialData.endTime ?? 600);
-      setDate(initialData.date ?? '');
+      setWorklogType(initialData?.worklogType ?? 'Coding');
+      setStartTime(initialData?.startTime ?? 540);
+      setEndTime(initialData?.endTime ?? 600);
+      setDate(initialData?.date ?? '');
     }
   }, [isOpen, mode, editWorklog, initialData, categories]);
 
   const handleCategoryChange = (newCat: string) => {
     setCategory(newCat);
-    // Auto-fill ticket ID & URL ticket ID for the selected category/project
+    setProjectError(false);
+    // Auto-fill ticket ID & URL ticket ID for the selected category/project, or clear if unselected
     const matchedCat = categories.find(
       (c) => c.key === newCat || c.key.toLowerCase() === newCat.toLowerCase()
     );
-    if (matchedCat?.ticketId) {
-      setTicketId(matchedCat.ticketId);
-    }
-    if (matchedCat?.urlTicketId) {
-      setUrlTicketId(matchedCat.urlTicketId);
-    }
+    setTicketId(matchedCat?.ticketId ?? '');
+    setUrlTicketId(matchedCat?.urlTicketId ?? '');
   };
 
   const bumpTime = useCallback(
@@ -127,7 +138,12 @@ export default function WorklogModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalCategory = category.trim() || 'General';
+    const finalCategory = category.trim();
+    if (!finalCategory) {
+      setProjectError(true);
+      return;
+    }
+    setProjectError(false);
     // Title is automatically replaced by Category/Project name
     const finalTitle = finalCategory;
 
@@ -149,14 +165,14 @@ export default function WorklogModal({
   const durationMins = duration % 60;
 
   const catColor = useMemo(() => {
-    if (!category) return '#6366f1';
+    if (!category) return '#0030FF';
     const found = categories.find(
       (c) =>
         c.key === category ||
         c.key.toLowerCase() === category?.toLowerCase() ||
         c.name.toLowerCase() === category?.toLowerCase()
     );
-    return found?.color || '#6366f1';
+    return found?.color || '#0030FF';
   }, [category, categories]);
 
   const sdpUrl = useMemo(() => {
@@ -194,56 +210,66 @@ export default function WorklogModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={onClose}
           />
 
-          {/* Modal (Apple Sheet Squircle with Fluid Spring) */}
+          {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-            className="glass-card relative w-full max-w-xl shadow-2xl z-10 overflow-hidden rounded-2xl border border-surface-600/50"
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="glass-card relative w-full max-w-xl shadow-2xl z-10 rounded-2xl border overflow-hidden transition-[background,border-color,box-shadow] duration-300"
+            style={{
+              background: category
+                ? `linear-gradient(180deg, color-mix(in srgb, ${catColor} 18%, var(--bg-card)) 0%, color-mix(in srgb, ${catColor} 10%, var(--bg-card)) 100%)`
+                : undefined,
+              borderColor: category
+                ? `color-mix(in srgb, ${catColor} 38%, var(--border-card))`
+                : undefined,
+              boxShadow: category
+                ? `0 24px 50px -12px color-mix(in srgb, ${catColor} 28%, rgba(0,0,0,0.3)), 0 4px 16px rgba(0,0,0,0.1)`
+                : undefined,
+            }}
           >
             {/* Color accent top bar */}
             <div
               className="h-1.5 w-full transition-colors duration-300"
-              style={{ backgroundColor: catColor }}
+              style={{ backgroundColor: category ? catColor : 'transparent' }}
             />
 
             {/* Header */}
             <div
               className="flex items-center justify-between px-6 py-3.5 transition-colors duration-300 border-b border-surface-600/30"
               style={{
-                backgroundColor: `${catColor}10`,
+                backgroundColor: category ? `color-mix(in srgb, ${catColor} 8%, transparent)` : undefined,
               }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm shrink-0"
                   style={{ backgroundColor: `${catColor}22` }}
                 >
                   <FileText size={15} style={{ color: catColor }} />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-sm font-semibold tracking-tight text-text-primary leading-tight">
                     {mode === 'create' ? 'Add Worklog' : 'Edit Worklog'}
                   </h2>
                   <p
-                    className="text-[11px] font-medium transition-colors duration-300 mt-0.5"
-                    style={{ color: catColor }}
+                    className="text-[11px] font-medium transition-colors duration-300 mt-0.5 truncate"
+                    style={{ color: category ? catColor : undefined }}
+                    title={category ? `Project: ${catDisplayName}` : undefined}
                   >
-                    Project: {catDisplayName}
+                    Project: <span className={category ? 'font-semibold' : 'text-text-muted italic'}>{category ? catDisplayName : '— Select Project —'}</span>
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer text-text-muted hover:text-text-primary"
+                className="p-1.5 rounded-full hover:bg-surface-700/60 active:scale-95 transition-all cursor-pointer text-text-muted hover:text-text-primary shrink-0"
               >
                 <X size={16} />
               </button>
@@ -259,31 +285,18 @@ export default function WorklogModal({
                     <FolderOpen size={12} />
                     Project / Category <span style={{ color: catColor }}>*</span>
                   </label>
-                  <div className="flex-1 relative">
-                    <div
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full transition-colors duration-300"
-                      style={{ backgroundColor: category ? catColor : '#666' }}
-                    />
-                    <select
+                  <div className="flex-1 min-w-0 relative">
+                    <ProjectSelector
                       value={category}
-                      onChange={(e) => handleCategoryChange(e.target.value)}
-                      className="w-full pl-8 pr-8 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-sm text-text-primary font-semibold focus:outline-none focus:ring-1 transition-all cursor-pointer appearance-none shadow-xs"
-                      style={{
-                        borderColor: `${catColor}60`,
-                      }}
-                      required
-                    >
-                      <option value="">— Select Project —</option>
-                      {categories.map((cat) => (
-                        <option key={cat.key} value={cat.key}>
-                          {cat.name} {cat.ticketId ? `(${cat.ticketId})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                      categories={categories}
+                      onChange={handleCategoryChange}
+                      accentColor={catColor}
                     />
+                    {projectError && (
+                      <p className="text-[11px] text-rose-500 font-semibold mt-1">
+                        Please select a project before saving.
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -293,7 +306,7 @@ export default function WorklogModal({
                     <Wrench size={12} />
                     Worklog Type
                   </label>
-                  <div className="flex-1 relative">
+                  <div className="flex-1 min-w-0 relative">
                     <select
                       value={worklogType}
                       onChange={(e) => setWorklogType(e.target.value)}
@@ -321,7 +334,7 @@ export default function WorklogModal({
                     <Tag size={12} />
                     Ticket IDs
                   </label>
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="flex-1 min-w-0 grid grid-cols-2 gap-2">
                     <input
                       type="text"
                       value={ticketId}
@@ -339,7 +352,7 @@ export default function WorklogModal({
                         placeholder="URL ID (108026...)"
                         className="w-full px-3 py-2 pr-8 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-xs font-mono font-semibold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all shadow-xs"
                         style={{ borderColor: `${catColor}50` }}
-                        title="Internal SDP Ticket ID in URL"
+                        title="Internal Manage Engine Ticket ID in URL"
                       />
                       {sdpUrl && (
                         <a
@@ -347,7 +360,7 @@ export default function WorklogModal({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-accent-500 hover:text-accent-400 transition-colors flex items-center justify-center p-0.5"
-                          title="Open Ticket in SDP"
+                          title="Open Ticket in Manage Engine"
                         >
                           <ExternalLink size={14} />
                         </a>
@@ -361,7 +374,7 @@ export default function WorklogModal({
                   <label className="text-xs font-semibold text-text-secondary w-[140px] shrink-0">
                     Executed Time
                   </label>
-                  <div className="flex-1 flex items-center gap-2">
+                  <div className="flex-1 min-w-0 flex items-center gap-2">
                     {/* Start */}
                     <div className="flex items-center gap-0.5 flex-1">
                       <button
@@ -463,7 +476,7 @@ export default function WorklogModal({
               <div
                 className="flex items-center justify-between px-6 py-3.5 transition-colors duration-300 border-t border-surface-600/30"
                 style={{
-                  backgroundColor: `${catColor}06`,
+                  backgroundColor: category ? `color-mix(in srgb, ${catColor} 5%, transparent)` : undefined,
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -481,7 +494,7 @@ export default function WorklogModal({
                     editWorklog.sdpPosted ? (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-400 bg-teal-500/10 border border-teal-500/25 rounded-xl">
                         <CheckCircle2 size={13} />
-                        Posted to SDP
+                        Posted to Manage Engine
                       </div>
                     ) : (
                       <button
@@ -498,7 +511,7 @@ export default function WorklogModal({
                         className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-xl text-white bg-teal-600 hover:bg-teal-500 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                       >
                         {isPosting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                        {isPosting ? 'Posting...' : 'Post to SDP'}
+                        {isPosting ? 'Posting...' : 'Post to Manage Engine'}
                       </button>
                     )
                   )}

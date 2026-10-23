@@ -1,6 +1,6 @@
 # Worklogger
 
-Worklogger is a standalone application designed to be installed globally on your machine, allowing you to launch it from any terminal window simply by typing `worklogger`—just like Jupyter Notebook. It helps you manage your worklogs and sync them to ServiceDesk Plus (SDP).
+Worklogger is a standalone application designed to be installed globally on your machine, allowing you to launch it from any terminal window simply by typing `worklogger`—just like Jupyter Notebook. It helps you manage your worklogs and sync them to Manage Engine.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ Before installing Worklogger, ensure your system meets the following requirement
   - Used by `install.ps1` to automatically install Node.js if it is not already installed on your machine.
 - **Source Archive (`WORKLOGGER.zip`)** *(if installing from a zip package)*:
   - Place `WORKLOGGER.zip` in the same directory as `install.ps1` (or provide a download URL when prompted).
-- **ServiceDesk Plus (SDP) Access**:
+- **Manage Engine Access**:
   - Network connectivity to `https://servicedeskplus.smretailinc.com/` for fetching tickets and logging work.
 
 ---
@@ -117,9 +117,9 @@ worklogger
 
 This will automatically start a local API server in the background and open the Worklogger UI in your default web browser!
 
-## Syncing SDP Session (Browser Extension)
+## Syncing Manage Engine Session (Browser Extension)
 
-To fetch tickets and post worklogs securely, Worklogger requires active session cookies from ServiceDesk Plus. Because of security restrictions (`HttpOnly`), you cannot manually copy these cookies using standard console scripts.
+To fetch tickets and post worklogs securely, Worklogger requires active session cookies from Manage Engine. Because of security restrictions (`HttpOnly`), you cannot manually copy these cookies using standard console scripts.
 
 To make this seamless, this project includes a **Worklogger Sync Extension**.
 
@@ -134,7 +134,7 @@ To make this seamless, this project includes a **Worklogger Sync Extension**.
 
 ### Using the Extension
 1. Ensure your **Worklogger CLI** is running (type `worklogger` in your terminal).
-2. Log into your **ServiceDesk Plus** account in your browser (`https://servicedeskplus.smretailinc.com/`).
+2. Log into your **Manage Engine** account in your browser (`https://servicedeskplus.smretailinc.com/`).
 3. Click the Worklogger Sync extension icon in your toolbar.
 4. Click **"Sync Session"**.
 5. Your local Worklogger application is now authenticated and ready to use!

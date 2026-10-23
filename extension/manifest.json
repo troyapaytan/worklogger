@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Worklogger SDP Cookie Sync",
+  "name": "Worklogger Manage Engine Cookie Sync",
   "version": "1.0",
-  "description": "Automatically extracts and syncs SDP cookies to your local Worklogger application.",
+  "description": "Automatically extracts and syncs Manage Engine cookies to your local Worklogger application.",
   "permissions": [
     "cookies",
     "activeTab",

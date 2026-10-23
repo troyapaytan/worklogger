@@ -61,18 +61,16 @@ export default function WorklogTypeMapModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+            exit={{ opacity: 0, scale: 0.98, y: 6 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="glass-card relative w-full max-w-2xl p-6 shadow-2xl z-10 rounded-2xl flex flex-col max-h-[90vh] border border-surface-600/50"
           >
             {/* Close button */}
@@ -90,10 +88,10 @@ export default function WorklogTypeMapModal({
               </div>
               <div>
                 <h2 className="text-base font-semibold text-text-primary tracking-tight leading-tight">
-                  Worklog Type SDP Mapping
+                  Worklog Type Manage Engine Mapping
                 </h2>
                 <p className="text-[12px] text-text-secondary mt-0.5 font-normal">
-                  Map each Worklog Type to its numeric SDP ID (shared between Change and Service Request tickets).
+                  Map each Worklog Type to its numeric Manage Engine ID (shared between Change and Service Request tickets).
                 </p>
               </div>
             </div>
@@ -101,7 +99,7 @@ export default function WorklogTypeMapModal({
             {/* Headers row */}
             <div className="grid grid-cols-12 gap-4 text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-2 px-2 shrink-0 border-b border-surface-600/40 pb-2">
               <span className="col-span-5">Worklog Type</span>
-              <span className="col-span-7">SDP ID (e.g. 108026...)</span>
+              <span className="col-span-7">Manage Engine ID (e.g. 108026...)</span>
             </div>
 
             {/* List */}
@@ -129,7 +127,7 @@ export default function WorklogTypeMapModal({
             {/* Action buttons */}
             <div className="flex items-center justify-between border-t border-surface-600/40 pt-4 shrink-0">
               <p className="text-[11px] text-text-muted">
-                Changes apply only locally and to new SDP posts.
+                Changes apply only locally and to new Manage Engine posts.
               </p>
               <div className="flex items-center gap-2">
                 <button

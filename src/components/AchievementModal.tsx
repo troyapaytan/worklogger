@@ -2,6 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Award, Flame, Target, Star, Zap, Clock, Shield } from 'lucide-react';
 
+import { toRoman } from '../utils/roman';
+
 export interface AchievementData {
   id: string;
   title: string;
@@ -36,16 +38,19 @@ export default function AchievementModal({ achievement, onClose }: AchievementMo
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
-            style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+            className="absolute inset-0 bg-black/50 dark:bg-black/70"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             onClick={onClose}
           />
           <motion.div
             className="relative w-full max-w-sm glass-card p-6 flex flex-col items-center text-center overflow-hidden"
-            style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
-            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            initial={{ scale: 0.98, y: 8, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 10, opacity: 0 }}
+            exit={{ scale: 0.98, y: 6, opacity: 0 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Sparkles effect */}
             <motion.div
@@ -59,7 +64,7 @@ export default function AchievementModal({ achievement, onClose }: AchievementMo
 
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-surface-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-surface-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -71,6 +76,12 @@ export default function AchievementModal({ achievement, onClose }: AchievementMo
             <h2 className="text-xl font-bold text-white mb-2 relative z-10">
               Achievement Unlocked!
             </h2>
+
+            {achievement.tier > 0 && (
+              <div className="inline-block px-3 py-0.5 rounded-full text-xs font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-2 relative z-10 tracking-wider">
+                TIER {toRoman(achievement.tier)}
+              </div>
+            )}
             
             <h3 className="text-lg font-semibold text-amber-400 mb-2 relative z-10">
               {achievement.title}

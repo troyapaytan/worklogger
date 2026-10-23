@@ -101,7 +101,7 @@ function localJsonStoragePlugin(): Plugin {
               res.statusCode = sdpRes.status;
               res.end(text);
             } catch (e: any) {
-              console.error('SDP Proxy Error:', e);
+              console.error('Manage Engine Proxy Error:', e);
               res.statusCode = 500;
               res.end(JSON.stringify({ error: e.message || 'Internal Server Error' }));
             }
@@ -143,14 +143,14 @@ function localJsonStoragePlugin(): Plugin {
               });
 
               const text = await sdpRes.text();
-              console.log(`[SDP Proxy] fetch-ticket URL: ${url.substring(0, 200)}...`);
-              console.log(`[SDP Proxy] fetch-ticket Response Status: ${sdpRes.status}`);
-              console.log(`[SDP Proxy] fetch-ticket Response Body: ${text.substring(0, 500)}`);
+              console.log(`[Manage Engine Proxy] fetch-ticket URL: ${url.substring(0, 200)}...`);
+              console.log(`[Manage Engine Proxy] fetch-ticket Response Status: ${sdpRes.status}`);
+              console.log(`[Manage Engine Proxy] fetch-ticket Response Body: ${text.substring(0, 500)}`);
               res.setHeader('Content-Type', 'application/json');
               res.statusCode = sdpRes.status;
               res.end(text);
             } catch (e: any) {
-              console.error('SDP Proxy Fetch Error:', e);
+              console.error('Manage Engine Proxy Fetch Error:', e);
               res.statusCode = 500;
               res.end(JSON.stringify({ error: e.message || 'Internal Server Error' }));
             }

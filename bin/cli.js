@@ -69,7 +69,7 @@ app.put('/api/data', (req, res) => {
   }
 });
 
-// SDP Proxy Endpoints
+// Manage Engine Proxy Endpoints
 app.post('/api/sdp/post-worklog', async (req, res) => {
   try {
     const { url, payload, cookies, csrfToken, appId, nonce } = req.body;
@@ -110,7 +110,7 @@ app.post('/api/sdp/post-worklog', async (req, res) => {
     const text = await sdpRes.text();
     res.status(sdpRes.status).send(text);
   } catch (e) {
-    console.error('SDP Proxy Error:', e);
+    console.error('Manage Engine Proxy Error:', e);
     res.status(500).json({ error: e.message || 'Internal Server Error' });
   }
 });
@@ -149,11 +149,11 @@ app.post('/api/sdp/fetch-ticket', async (req, res) => {
     });
 
     const text = await sdpRes.text();
-    console.log(`[SDP Proxy] fetch-ticket URL: ${url.substring(0, 200)}...`);
-    console.log(`[SDP Proxy] fetch-ticket Response Status: ${sdpRes.status}`);
+    console.log(`[Manage Engine Proxy] fetch-ticket URL: ${url.substring(0, 200)}...`);
+    console.log(`[Manage Engine Proxy] fetch-ticket Response Status: ${sdpRes.status}`);
     res.status(sdpRes.status).send(text);
   } catch (e) {
-    console.error('SDP Proxy Fetch Error:', e);
+    console.error('Manage Engine Proxy Fetch Error:', e);
     res.status(500).json({ error: e.message || 'Internal Server Error' });
   }
 });

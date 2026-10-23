@@ -2,7 +2,7 @@ import type { Worklog } from '../db';
 import { formatMinutesToTime, formatDuration, calculateDuration } from './ganttMath';
 
 /**
- * Format worklogs for a specific date into ServiceDesk Plus-ready text.
+ * Format worklogs for a specific date into Manage Engine-ready text.
  */
 export function formatWorklogsForSDP(
   worklogs: Worklog[],
@@ -39,7 +39,7 @@ export function formatWorklogsForSDP(
 }
 
 /**
- * Format worklogs for a date range into SDP-ready text.
+ * Format worklogs for a date range into Manage Engine-ready text.
  */
 export function formatWeeklyWorklogsForSDP(
   worklogsByDate: Map<string, Worklog[]>

@@ -313,21 +313,17 @@ export default function WorklogBlock({
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      <div
         id={`worklog-${log.id}`}
         data-duration={duration}
         data-start-time={log.startTime}
-        className={`absolute top-1 bottom-1 rounded-lg cursor-pointer select-none group flex items-center pointer-events-auto ${cls} ${
+        className={`absolute top-1 bottom-1 rounded-lg cursor-pointer select-none group flex items-center pointer-events-auto transition-[box-shadow,border-color] duration-150 ${cls} ${
           hasConflict ? 'conflict-stripe' : ''
         } ${
           isDragging
             ? 'z-40 shadow-lg ring-2 ring-accent-400/50'
             : isHoveringBlock
-              ? 'z-30 ring-2 ring-white/90 shadow-2xl scale-[1.01]'
+              ? 'z-30 ring-2 ring-white/90 shadow-xl'
               : 'z-10 hover:z-20 hover:shadow-md'
         }`}
         style={{
@@ -337,8 +333,7 @@ export default function WorklogBlock({
           '--block-raw-color': rawColor,
           '--block-card-bg': cardBg,
           '--block-card-border': cardBorder,
-          transform: 'translateZ(0)',
-          willChange: isDragging ? 'left, width' : 'transform, opacity',
+          willChange: isDragging ? 'left, width' : undefined,
         } as React.CSSProperties}
         onClick={() => !isDragging && onClick(log)}
         onMouseEnter={handleMouseEnter}
@@ -360,13 +355,13 @@ export default function WorklogBlock({
           }
         }}
       >
-        {/* Hardware-accelerated hover glow layer */}
+        {/* Subtle hover glow layer */}
         <div
-          className={`absolute -inset-0.5 rounded-lg opacity-0 pointer-events-none transition-opacity duration-200 -z-10 ${
+          className={`absolute -inset-0.5 rounded-lg opacity-0 pointer-events-none transition-opacity duration-150 -z-10 ${
             isHoveringBlock ? 'opacity-100' : ''
           }`}
           style={{
-            boxShadow: `0 0 16px 4px ${rawColor || '#3b82f6'}, inset 0 0 8px rgba(255, 255, 255, 0.45)`,
+            boxShadow: `0 0 10px 2px ${rawColor || '#3b82f6'}`,
           }}
         />
 
@@ -385,7 +380,7 @@ export default function WorklogBlock({
             <div className="text-[11px] font-semibold text-white truncate leading-tight flex items-center gap-1.5">
               <span className="shrink-0 flex items-center gap-1">
                 {log.sdpPosted && (
-                  <CheckCircle2 size={11} className="text-white drop-shadow-md" title="Posted to SDP" />
+                  <CheckCircle2 size={11} className="text-white drop-shadow-md" title="Posted to Manage Engine" />
                 )}
                 {log.category || log.title}
               </span>
@@ -410,7 +405,7 @@ export default function WorklogBlock({
             <GripVertical size={10} className="text-white/70" />
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Hover Details Tooltip Card Portal - Renders directly in document.body above all elements */}
       {typeof document !== 'undefined' &&
@@ -423,17 +418,16 @@ export default function WorklogBlock({
                   left: `${popupCoords.x}px`,
                   top: `${popupCoords.y}px`,
                   transform: popupCoords.placeAbove ? 'translateY(-100%)' : 'none',
-                  willChange: 'transform, opacity',
                 }}
               >
                 <motion.div
-                  initial={{ opacity: 0, y: popupCoords.placeAbove ? 6 : -6, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: popupCoords.placeAbove ? 4 : -4, scale: 0.96 }}
-                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                  initial={{ opacity: 0, y: popupCoords.placeAbove ? 4 : -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: popupCoords.placeAbove ? 2 : -2 }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
                 >
                 <div
-                  className="rounded-2xl p-3.5 shadow-2xl text-left text-white text-xs flex flex-col gap-2.5 backdrop-blur-2xl"
+                  className="rounded-2xl p-3.5 shadow-xl text-left text-white text-xs flex flex-col gap-2.5 bg-surface-800"
                   style={{
                     backgroundColor: cardBg,
                     borderColor: cardBorder,
