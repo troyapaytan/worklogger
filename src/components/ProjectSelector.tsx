@@ -8,6 +8,8 @@ export interface CategoryOption {
   color?: string;
   ticketId?: string;
   urlTicketId?: string;
+  defaultTaskId?: string;
+  defaultTaskTitle?: string;
   ownerId?: string;
   status?: string;
 }

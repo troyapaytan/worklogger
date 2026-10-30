@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, CheckCircle2, Clock, AlertTriangle, Tag, FileText } from 'lucide-react';
+import { GripVertical, CheckCircle2, Clock, AlertTriangle, Tag, FileText, ListTodo } from 'lucide-react';
 import type { Worklog } from '../db';
 import {
   minutesToPercent,
@@ -491,6 +491,19 @@ export default function WorklogBlock({
                         {log.worklogType || log.category || 'General'}
                       </span>
                     </div>
+                    {(log.taskTitle || log.taskId) && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1 shrink-0">
+                          <ListTodo size={11} className="text-white/60" /> Task
+                        </span>
+                        <span
+                          className="font-semibold text-white truncate text-right"
+                          title={log.taskTitle || `Task #${log.taskId}`}
+                        >
+                          {log.taskTitle || `Task #${log.taskId}`}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
                         <Clock size={11} className="text-white/60" /> Time

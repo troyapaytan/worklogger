@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit3, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Edit3, CheckCircle2, ListTodo } from 'lucide-react';
 import type { Worklog } from '../db';
 import {
   getHourMarkers,
@@ -428,6 +428,16 @@ export default function DailyGantt({
                       {log.ticketId && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-500/15 text-accent-400 font-mono font-medium shrink-0">
                           {log.ticketId}
+                        </span>
+                      )}
+
+                      {(log.taskTitle || log.taskId) && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-surface-700/80 border border-surface-600/60 text-text-secondary font-medium truncate max-w-[240px] flex items-center gap-1"
+                          title={log.taskTitle || `Task #${log.taskId}`}
+                        >
+                          <ListTodo size={10} className="shrink-0 text-accent-400" />
+                          <span className="truncate">{log.taskTitle || `Task #${log.taskId}`}</span>
                         </span>
                       )}
 

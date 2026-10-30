@@ -226,6 +226,8 @@ export default function App() {
       description: string;
       ticketId: string;
       urlTicketId?: string;
+      taskId?: string;
+      taskTitle?: string;
       category: string;
       worklogType: string;
     } | null;
@@ -406,7 +408,17 @@ export default function App() {
   }, [categoryColors]);
 
   const categories = useMemo(() => {
-    const resolved: { key: string; name: string; color: string; ticketId: string; urlTicketId: string; ownerId: string; status?: string }[] = [];
+    const resolved: {
+      key: string;
+      name: string;
+      color: string;
+      ticketId: string;
+      urlTicketId: string;
+      defaultTaskId: string;
+      defaultTaskTitle: string;
+      ownerId: string;
+      status?: string;
+    }[] = [];
     const knownKeys = new Set<string>();
 
     for (const c of categoryColors ?? []) {
@@ -418,6 +430,8 @@ export default function App() {
           color: c.color,
           ticketId: c.ticketId ?? '',
           urlTicketId: c.urlTicketId ?? '',
+          defaultTaskId: c.defaultTaskId ?? '',
+          defaultTaskTitle: c.defaultTaskTitle ?? '',
           ownerId: c.ownerId ?? '',
           status: c.status ?? '',
         });
@@ -444,6 +458,8 @@ export default function App() {
           color: autoPalette[paletteIdx % autoPalette.length],
           ticketId: log.ticketId ?? '',
           urlTicketId: log.urlTicketId ?? '',
+          defaultTaskId: log.taskId ?? '',
+          defaultTaskTitle: log.taskTitle ?? '',
           ownerId: '',
         });
         paletteIdx++;
@@ -509,6 +525,8 @@ export default function App() {
       description: string;
       ticketId: string;
       urlTicketId?: string;
+      taskId?: string;
+      taskTitle?: string;
       category: string;
       worklogType: string;
     }) => {
@@ -547,6 +565,8 @@ export default function App() {
       description: string;
       ticketId: string;
       urlTicketId?: string;
+      taskId?: string;
+      taskTitle?: string;
       category: string;
       worklogType: string;
     }) => {
@@ -635,7 +655,19 @@ export default function App() {
 
   // ===== Category / Project Colors & Ticket IDs =====
   const handleSaveColors = useCallback(
-    async (colorList: { category: string; name: string; color: string; ticketId?: string; urlTicketId?: string; ownerId?: string; status?: string }[]) => {
+    async (
+      colorList: {
+        category: string;
+        name: string;
+        color: string;
+        ticketId?: string;
+        urlTicketId?: string;
+        defaultTaskId?: string;
+        defaultTaskTitle?: string;
+        ownerId?: string;
+        status?: string;
+      }[]
+    ) => {
       await setAllCategoryColors(colorList);
     },
     []
@@ -674,7 +706,8 @@ export default function App() {
     const duration = log.endTime - log.startTime;
     const ticketPrefix = log.ticketId ? `[${log.ticketId}] ` : '';
     const catName = categories.find((c) => c.key === log.category)?.name || log.category || 'Other';
-    const text = `${ticketPrefix}${log.title} (${catName})\nTime: ${formatMinutesToTime(log.startTime, true)} - ${formatMinutesToTime(log.endTime, true)} (${formatDuration(duration)})\nNotes: ${log.description || 'No description provided.'}`;
+    const taskLine = log.taskTitle || log.taskId ? `\nTask: ${log.taskTitle || log.taskId}` : '';
+    const text = `${ticketPrefix}${log.title} (${catName})\nTime: ${formatMinutesToTime(log.startTime, true)} - ${formatMinutesToTime(log.endTime, true)} (${formatDuration(duration)})${taskLine}\nNotes: ${log.description || 'No description provided.'}`;
 
     const success = await copyToClipboard(text);
     if (success) {
@@ -703,34 +736,78 @@ export default function App() {
     addToast('Worklog Type Mapping saved');
   }, [addToast]);
 
-  const handlePostToSdp = useCallback(async (log: Worklog) => {
+  const handlePostToSdp = useCallback(async (log: Worklog, draftOverrides?: Partial<Worklog>) => {
     if (log.sdpPosted) return; // Already posted
+
+    const merged: Worklog = { ...log, ...draftOverrides };
+    const cat = categories.find(
+      (c) =>
+        c.key === merged.category ||
+        c.key.toLowerCase() === (merged.category || '').toLowerCase()
+    );
+    const ticketId = merged.ticketId || cat?.ticketId || '';
+    const urlTicketId = merged.urlTicketId || cat?.urlTicketId || '';
+    const isCh = ticketId.trim().toUpperCase().startsWith('CH-');
+    const effectiveTaskId = isCh
+      ? (merged.taskId !== undefined ? merged.taskId : (cat?.defaultTaskId || ''))
+      : '';
+    const effectiveTaskTitle = isCh && effectiveTaskId
+      ? (merged.taskTitle !== undefined ? merged.taskTitle : (cat?.defaultTaskTitle || ''))
+      : '';
+
+    // Persist any unsaved form edits (e.g. newly selected Change Task) before posting
+    if (log.id && draftOverrides) {
+      await updateWorklog(log.id, {
+        ...merged,
+        ticketId,
+        urlTicketId,
+        taskId: effectiveTaskId,
+        taskTitle: effectiveTaskTitle,
+        updatedAt: Date.now(),
+      });
+    }
 
     // Use global ownerId from sdpConfig
     const ownerId = sdpConfig.ownerId;
 
     const res = await postWorklogToSdp(
       {
-        date: log.date,
-        startTime: log.startTime,
-        endTime: log.endTime,
-        description: log.description,
-        worklogType: log.worklogType || '',
-        ticketId: log.ticketId || '',
-        urlTicketId: log.urlTicketId || '',
+        date: merged.date,
+        startTime: merged.startTime,
+        endTime: merged.endTime,
+        description: merged.description,
+        worklogType: merged.worklogType || '',
+        ticketId,
+        urlTicketId,
+        taskId: effectiveTaskId,
       },
       sdpConfig,
       ownerId
     );
 
     if (res.success) {
-      addToast('Worklog successfully posted to Manage Engine!');
-      await updateWorklog(log.id!, {
-        ...log,
+      addToast(
+        effectiveTaskId
+          ? 'Worklog posted to Change Task in Manage Engine!'
+          : 'Worklog successfully posted to Manage Engine!'
+      );
+      const now = Date.now();
+      const postedWorklog: Worklog = {
+        ...merged,
+        ticketId,
+        urlTicketId,
+        taskId: effectiveTaskId,
+        taskTitle: effectiveTaskTitle,
         sdpPosted: true,
-        sdpPostedAt: Date.now(),
-        updatedAt: Date.now(),
-      });
+        sdpPostedAt: now,
+        updatedAt: now,
+      };
+      await updateWorklog(log.id!, postedWorklog);
+      setWorklogModal((prev) =>
+        prev.open && prev.editWorklog?.id === log.id
+          ? { ...prev, editWorklog: postedWorklog }
+          : prev
+      );
     } else {
       addToast(`Failed to post to Manage Engine: ${res.error}`, 'error');
     }
@@ -769,9 +846,20 @@ export default function App() {
               await new Promise((res) => setTimeout(res, delayMs));
             }
 
-            const cat = categories.find((c) => c.key === log.category);
+            const cat = categories.find(
+              (c) =>
+                c.key === log.category ||
+                c.key.toLowerCase() === (log.category || '').toLowerCase()
+            );
             const ticketId = log.ticketId || cat?.ticketId || '';
             const urlTicketId = log.urlTicketId || cat?.urlTicketId || '';
+            const isCh = ticketId.trim().toUpperCase().startsWith('CH-');
+            const taskId = isCh
+              ? (log.taskId !== undefined ? log.taskId : (cat?.defaultTaskId || ''))
+              : '';
+            const taskTitle = isCh && taskId
+              ? (log.taskTitle !== undefined ? log.taskTitle : (cat?.defaultTaskTitle || ''))
+              : '';
             const ownerId = sdpConfig.ownerId;
 
             const res = await postWorklogToSdp(
@@ -783,6 +871,7 @@ export default function App() {
                 worklogType: log.worklogType || '',
                 ticketId,
                 urlTicketId,
+                taskId,
               },
               sdpConfig,
               ownerId
@@ -791,6 +880,10 @@ export default function App() {
             if (res.success) {
               await updateWorklog(log.id!, {
                 ...log,
+                ticketId,
+                urlTicketId,
+                taskId,
+                taskTitle,
                 sdpPosted: true,
                 sdpPostedAt: Date.now(),
               });
@@ -1012,11 +1105,12 @@ export default function App() {
         editWorklog={worklogModal.editWorklog}
         categories={categories}
         worklogTypes={WORKLOG_TYPES}
+        sdpConfig={sdpConfig}
         onSave={handleSaveWorklog}
         onDelete={handleDeleteFromModal}
         onPostToSdp={
           worklogModal.mode === 'edit' && worklogModal.editWorklog
-            ? () => handlePostToSdp(worklogModal.editWorklog!)
+            ? (draftData) => handlePostToSdp(worklogModal.editWorklog!, draftData)
             : undefined
         }
         onClose={() => setWorklogModal({ open: false, mode: 'create' })}
@@ -1179,10 +1273,12 @@ export default function App() {
                       endTime: end,
                       title: copiedWorklog.title,
                       description: copiedWorklog.description,
-                      ticketId: copiedWorklog.ticketId,
-                      urlTicketId: copiedWorklog.urlTicketId,
-                      category: copiedWorklog.category,
-                      worklogType: copiedWorklog.worklogType,
+                      ticketId: copiedWorklog.ticketId ?? '',
+                      urlTicketId: copiedWorklog.urlTicketId ?? '',
+                      taskId: copiedWorklog.taskId ?? '',
+                      taskTitle: copiedWorklog.taskTitle ?? '',
+                      category: copiedWorklog.category ?? '',
+                      worklogType: copiedWorklog.worklogType ?? 'Coding',
                     };
                     setContextMenu((prev) => ({ ...prev, visible: false }));
                     setWorklogModal((prev) => ({ ...prev, mode: 'create', editWorklog: undefined }));

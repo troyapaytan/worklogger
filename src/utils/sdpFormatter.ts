@@ -30,6 +30,9 @@ export function formatWorklogsForSDP(
         true
       )} (${formatDuration(duration)})`
     );
+    if (log.taskTitle || log.taskId) {
+      lines.push(`Task: ${log.taskTitle || log.taskId}`);
+    }
     if (log.description) {
       lines.push(`Notes: ${log.description}`);
     }

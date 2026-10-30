@@ -17,19 +17,41 @@ import {
   Filter,
   ArrowUpDown,
   Minus,
-  ChevronDown
+  ChevronDown,
+  CornerDownRight
 } from 'lucide-react';
 import type { CategoryColor, SdpConfig } from '../db';
 import { fetchTicketDetails, fetchMyAssignedTickets, fetchTicketStatusesBatch } from '../utils/sdpApi';
 import type { SdpTicketSummary } from '../utils/sdpApi';
+import ChangeTaskSelector from './ChangeTaskSelector';
 
 interface ColorEditorProps {
   isOpen: boolean;
   currentColors: CategoryColor[];
-  categories?: { key: string; name: string; color: string; ticketId?: string; urlTicketId?: string; status?: string }[];
+  categories?: {
+    key: string;
+    name: string;
+    color: string;
+    ticketId?: string;
+    urlTicketId?: string;
+    defaultTaskId?: string;
+    defaultTaskTitle?: string;
+    status?: string;
+  }[];
   sdpConfig?: SdpConfig;
   theme?: 'light' | 'dark';
-  onSave: (categories: { category: string; name: string; color: string; ticketId?: string; urlTicketId?: string; status?: string }[]) => void;
+  onSave: (
+    categories: {
+      category: string;
+      name: string;
+      color: string;
+      ticketId?: string;
+      urlTicketId?: string;
+      defaultTaskId?: string;
+      defaultTaskTitle?: string;
+      status?: string;
+    }[]
+  ) => void;
   onClose: () => void;
 }
 
@@ -39,6 +61,8 @@ interface ProjectItem {
   name: string;
   ticketId: string;
   urlTicketId: string;
+  defaultTaskId: string;
+  defaultTaskTitle: string;
   color: string;
   status?: string;
   isCustom?: boolean;
@@ -130,14 +154,21 @@ export default function ColorEditor({
       window.clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
-    const list = updatedItems.map((item) => ({
-      category: item.name.trim() || item.key,
-      name: item.name.trim() || item.key,
-      ticketId: item.ticketId.trim(),
-      urlTicketId: item.urlTicketId.trim(),
-      color: item.color,
-      status: item.status || '',
-    }));
+    const list = updatedItems.map((item) => {
+      const isCh = item.ticketId.trim().toUpperCase().startsWith('CH-');
+      const cleanTaskId = isCh ? (item.defaultTaskId || '').trim() : '';
+      const cleanTaskTitle = isCh && cleanTaskId ? (item.defaultTaskTitle || '').trim() : '';
+      return {
+        category: item.name.trim() || item.key,
+        name: item.name.trim() || item.key,
+        ticketId: item.ticketId.trim(),
+        urlTicketId: item.urlTicketId.trim(),
+        defaultTaskId: cleanTaskId,
+        defaultTaskTitle: cleanTaskTitle,
+        color: item.color,
+        status: item.status || '',
+      };
+    });
     onSave(list);
   }, [onSave]);
 
@@ -215,6 +246,8 @@ export default function ColorEditor({
             name: c.customName || c.category,
             ticketId: c.ticketId ?? '',
             urlTicketId: c.urlTicketId ?? '',
+            defaultTaskId: c.defaultTaskId ?? '',
+            defaultTaskTitle: c.defaultTaskTitle ?? '',
             color: c.color,
             status: c.status ?? '',
             isCustom: true,
@@ -234,6 +267,8 @@ export default function ColorEditor({
               name: cat.name,
               ticketId: cat.ticketId ?? '',
               urlTicketId: cat.urlTicketId ?? '',
+              defaultTaskId: cat.defaultTaskId ?? '',
+              defaultTaskTitle: cat.defaultTaskTitle ?? '',
               color: cat.color,
               status: cat.status ?? '',
               isCustom: true,
@@ -285,7 +320,17 @@ export default function ColorEditor({
 
   const handleTicketIdChange = (id: string, val: string) => {
     setItems((prev) => {
-      const next = prev.map((item) => (item.id === id ? { ...item, ticketId: val } : item));
+      const isCh = val.trim().toUpperCase().startsWith('CH-');
+      const next = prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              ticketId: val,
+              defaultTaskId: isCh ? item.defaultTaskId : '',
+              defaultTaskTitle: isCh ? item.defaultTaskTitle : '',
+            }
+          : item
+      );
       debouncedPersist(next);
       return next;
     });
@@ -293,8 +338,27 @@ export default function ColorEditor({
 
   const handleUrlTicketIdChange = (id: string, val: string) => {
     setItems((prev) => {
-      const next = prev.map((item) => (item.id === id ? { ...item, urlTicketId: val } : item));
+      const next = prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              urlTicketId: val,
+              defaultTaskId: val.trim() === item.urlTicketId.trim() ? item.defaultTaskId : '',
+              defaultTaskTitle: val.trim() === item.urlTicketId.trim() ? item.defaultTaskTitle : '',
+            }
+          : item
+      );
       debouncedPersist(next);
+      return next;
+    });
+  };
+
+  const handleDefaultTaskChange = (id: string, defaultTaskId: string, defaultTaskTitle: string) => {
+    setItems((prev) => {
+      const next = prev.map((item) =>
+        item.id === id ? { ...item, defaultTaskId, defaultTaskTitle } : item
+      );
+      persistChanges(next);
       return next;
     });
   };
@@ -340,6 +404,8 @@ export default function ColorEditor({
       name: finalName,
       ticketId: finalTicketId,
       urlTicketId: finalUrlTicketId,
+      defaultTaskId: '',
+      defaultTaskTitle: '',
       color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)],
       status: finalStatus,
       isCustom: true,
@@ -523,6 +589,8 @@ export default function ColorEditor({
       name: t.subject || t.displayId,
       ticketId: t.ticketType === 'CH' ? `CH-${t.displayId}` : t.displayId,
       urlTicketId: t.id,
+      defaultTaskId: '',
+      defaultTaskTitle: '',
       color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)],
       status: t.status || '',
       isCustom: true,
@@ -1150,80 +1218,107 @@ export default function ColorEditor({
                 .map((item) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1.8fr_2.7fr_auto_auto_auto] gap-2.5 items-center py-1 border-b border-surface-600/30 dark:border-surface-700/30 last:border-0"
+                  className="py-1.5 border-b border-surface-600/30 dark:border-surface-700/30 last:border-0 space-y-1.5"
                 >
-                  {/* Editable Project Name field */}
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => handleNameChange(item.id, e.target.value)}
-                    placeholder="Project Name"
-                    maxLength={40}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
-                  />
-
-                  {/* Editable Ticket ID field */}
-                  <input
-                    type="text"
-                    value={item.ticketId}
-                    onChange={(e) => handleTicketIdChange(item.id, e.target.value)}
-                    placeholder="e.g. CH-4233"
-                    maxLength={20}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
-                  />
-
-                  {/* Editable URL Ticket ID field */}
-                  <input
-                    type="text"
-                    value={item.urlTicketId}
-                    onChange={(e) => handleUrlTicketIdChange(item.id, e.target.value)}
-                    placeholder="108026..."
-                    maxLength={30}
-                    className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
-                    title="Internal Manage Engine Ticket ID used in request/change URLs & API endpoints"
-                  />
-
-                  {/* Color Picker Swatch Only */}
-                  <div className="relative w-7 h-7 cursor-pointer flex items-center justify-center border border-surface-400 dark:border-surface-500 overflow-hidden shrink-0 rounded-xl shadow-xs">
+                  <div className="grid grid-cols-[2fr_1.8fr_2.7fr_auto_auto_auto] gap-2.5 items-center">
+                    {/* Editable Project Name field */}
                     <input
-                      type="color"
-                      value={item.color}
-                      onChange={(e) => handleColorChange(item.id, e.target.value)}
-                      className="absolute inset-0 cursor-pointer w-12 h-12 -translate-x-2 -translate-y-2 p-0 border-0 bg-transparent"
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => handleNameChange(item.id, e.target.value)}
+                      placeholder="Project Name"
+                      maxLength={40}
+                      className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-semibold dark:font-medium text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
                     />
+
+                    {/* Editable Ticket ID field */}
+                    <input
+                      type="text"
+                      value={item.ticketId}
+                      onChange={(e) => handleTicketIdChange(item.id, e.target.value)}
+                      placeholder="e.g. CH-4233"
+                      maxLength={20}
+                      className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
+                    />
+
+                    {/* Editable URL Ticket ID field */}
+                    <input
+                      type="text"
+                      value={item.urlTicketId}
+                      onChange={(e) => handleUrlTicketIdChange(item.id, e.target.value)}
+                      placeholder="108026..."
+                      maxLength={30}
+                      className="w-full px-2.5 py-1.5 bg-surface-800 dark:bg-surface-700/50 border border-surface-400/80 dark:border-surface-500/50 text-xs font-mono font-bold dark:font-semibold text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-[#0030FF]/40 focus:border-[#0030FF] rounded-xl transition-all shadow-xs"
+                      title="Internal Manage Engine Ticket ID used in request/change URLs & API endpoints"
+                    />
+
+                    {/* Color Picker Swatch Only */}
+                    <div className="relative w-7 h-7 cursor-pointer flex items-center justify-center border border-surface-400 dark:border-surface-500 overflow-hidden shrink-0 rounded-xl shadow-xs">
+                      <input
+                        type="color"
+                        value={item.color}
+                        onChange={(e) => handleColorChange(item.id, e.target.value)}
+                        className="absolute inset-0 cursor-pointer w-12 h-12 -translate-x-2 -translate-y-2 p-0 border-0 bg-transparent"
+                      />
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-center min-w-[95px]">
+                      {item.status ? (
+                        <span
+                          className={`text-[10px] px-2.5 py-0.5 rounded-lg border font-bold whitespace-nowrap max-w-[115px] truncate text-center shadow-xs transition-colors ${getStatusBadgeStyle(item.status)}`}
+                          title={item.status}
+                        >
+                          {item.status}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-surface-700/60 text-slate-700 dark:text-text-muted border border-slate-300 dark:border-surface-600 text-center font-mono">
+                          —
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Delete Action */}
+                    <div className="flex items-center justify-center w-6">
+                      {item.isCustom ? (
+                        <button
+                          type="button"
+                          onClick={() => setProjectToDelete(item)}
+                          className="p-1.5 hover:bg-rose-500/15 text-slate-500 dark:text-text-muted hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-all active:scale-95 cursor-pointer"
+                          title="Remove project"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      ) : (
+                        <span className="w-5" />
+                      )}
+                    </div>
                   </div>
 
-                  {/* Status Badge */}
-                  <div className="flex items-center justify-center min-w-[95px]">
-                    {item.status ? (
-                      <span
-                        className={`text-[10px] px-2.5 py-0.5 rounded-lg border font-bold whitespace-nowrap max-w-[115px] truncate text-center shadow-xs transition-colors ${getStatusBadgeStyle(item.status)}`}
-                        title={item.status}
-                      >
-                        {item.status}
+                  {/* Optional Default Change Task selector for CH- projects */}
+                  {item.ticketId.trim().toUpperCase().startsWith('CH-') && (
+                    <div className="flex items-center gap-2 pl-2 pr-8">
+                      <span className="text-[10px] font-semibold text-text-muted shrink-0 flex items-center gap-1">
+                        <CornerDownRight size={11} className="text-[#0030FF] dark:text-[#4d7aff]" />
+                        Default Task:
                       </span>
-                    ) : (
-                      <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-surface-700/60 text-slate-700 dark:text-text-muted border border-slate-300 dark:border-surface-600 text-center font-mono">
-                        —
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Delete Action */}
-                  <div className="flex items-center justify-center w-6">
-                    {item.isCustom ? (
-                      <button
-                        type="button"
-                        onClick={() => setProjectToDelete(item)}
-                        className="p-1.5 hover:bg-rose-500/15 text-slate-500 dark:text-text-muted hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-all active:scale-95 cursor-pointer"
-                        title="Remove project"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    ) : (
-                      <span className="w-5" />
-                    )}
-                  </div>
+                      <div className="flex-1 min-w-0 max-w-md">
+                        <ChangeTaskSelector
+                          urlTicketId={item.urlTicketId}
+                          sdpConfig={sdpConfig}
+                          taskId={item.defaultTaskId}
+                          taskTitle={item.defaultTaskTitle}
+                          onChange={(taskId, taskTitle) =>
+                            handleDefaultTaskChange(item.id, taskId, taskTitle)
+                          }
+                          accentColor={item.color}
+                          autoFetch={false}
+                          compact={true}
+                          emptyLabel="Main Change Ticket (No Default Task)"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

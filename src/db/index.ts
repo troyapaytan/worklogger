@@ -10,6 +10,8 @@ export interface Worklog {
   description: string;
   ticketId?: string;
   urlTicketId?: string;
+  taskId?: string;
+  taskTitle?: string;
   category?: string;
   worklogType?: string;
   createdAt: number;
@@ -31,6 +33,8 @@ export interface CategoryColor {
   customName?: string;
   ticketId?: string;
   urlTicketId?: string;
+  defaultTaskId?: string;
+  defaultTaskTitle?: string;
   ownerId?: string;
   status?: string;
   color: string;
@@ -327,20 +331,22 @@ export async function saveCategoryColor(
   ticketId?: string,
   urlTicketId?: string,
   ownerId?: string,
-  status?: string
+  status?: string,
+  defaultTaskId?: string,
+  defaultTaskTitle?: string
 ): Promise<void> {
   const idx = state.categoryColors.findIndex(c => c.category === category);
   if (idx > -1) {
-    state.categoryColors[idx] = { ...state.categoryColors[idx], color, customName, ticketId, urlTicketId, ownerId, status };
+    state.categoryColors[idx] = { ...state.categoryColors[idx], color, customName, ticketId, urlTicketId, ownerId, status, defaultTaskId, defaultTaskTitle };
   } else {
-    state.categoryColors.push({ id: Date.now(), category, color, customName, ticketId, urlTicketId, ownerId, status });
+    state.categoryColors.push({ id: Date.now(), category, color, customName, ticketId, urlTicketId, ownerId, status, defaultTaskId, defaultTaskTitle });
   }
   notify();
   syncToBackend();
 }
 
 export async function setAllCategoryColors(
-  list: { category: string; color: string; customName?: string; ticketId?: string; urlTicketId?: string; ownerId?: string; status?: string }[]
+  list: { category: string; color: string; customName?: string; ticketId?: string; urlTicketId?: string; defaultTaskId?: string; defaultTaskTitle?: string; ownerId?: string; status?: string }[]
 ): Promise<void> {
   state.categoryColors = list.map((item, i) => ({
     id: Date.now() + i,
@@ -349,6 +355,8 @@ export async function setAllCategoryColors(
     customName: item.customName,
     ticketId: item.ticketId,
     urlTicketId: item.urlTicketId,
+    defaultTaskId: item.defaultTaskId,
+    defaultTaskTitle: item.defaultTaskTitle,
     ownerId: item.ownerId,
     status: item.status
   }));

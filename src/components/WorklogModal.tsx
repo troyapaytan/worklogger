@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Plus, Minus, FileText, ChevronDown, FolderOpen, Wrench, Tag, Send, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
-import type { Worklog } from '../db';
+import { X, Clock, Plus, Minus, FileText, ChevronDown, FolderOpen, Wrench, Tag, ListTodo, Send, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
+import type { Worklog, SdpConfig } from '../db';
 import { formatMinutesToTime, calculateDuration, clampMinutes } from '../utils/ganttMath';
 import ProjectSelector, { type CategoryOption } from './ProjectSelector';
+import ChangeTaskSelector from './ChangeTaskSelector';
 export type { CategoryOption };
 
 interface WorklogModalProps {
@@ -17,12 +18,15 @@ interface WorklogModalProps {
     description?: string;
     ticketId?: string;
     urlTicketId?: string;
+    taskId?: string;
+    taskTitle?: string;
     category?: string;
     worklogType?: string;
   };
   editWorklog?: Worklog;
   categories: CategoryOption[];
   worklogTypes: string[];
+  sdpConfig?: SdpConfig;
   onSave: (data: {
     date: string;
     startTime: number;
@@ -31,11 +35,25 @@ interface WorklogModalProps {
     description: string;
     ticketId: string;
     urlTicketId: string;
+    taskId: string;
+    taskTitle: string;
     category: string;
     worklogType: string;
   }) => void;
   onDelete?: () => void;
-  onPostToSdp?: () => Promise<void>;
+  onPostToSdp?: (draftData: {
+    date: string;
+    startTime: number;
+    endTime: number;
+    title: string;
+    description: string;
+    ticketId: string;
+    urlTicketId: string;
+    taskId: string;
+    taskTitle: string;
+    category: string;
+    worklogType: string;
+  }) => Promise<void>;
   onClose: () => void;
 }
 
@@ -46,6 +64,7 @@ export default function WorklogModal({
   editWorklog,
   categories,
   worklogTypes,
+  sdpConfig,
   onSave,
   onDelete,
   onPostToSdp,
@@ -55,6 +74,8 @@ export default function WorklogModal({
   const [description, setDescription] = useState('');
   const [ticketId, setTicketId] = useState('');
   const [urlTicketId, setUrlTicketId] = useState('');
+  const [taskId, setTaskId] = useState('');
+  const [taskTitle, setTaskTitle] = useState('');
   const [category, setCategory] = useState('');
   const [projectError, setProjectError] = useState(false);
   const [worklogType, setWorklogType] = useState('Coding');
@@ -90,6 +111,24 @@ export default function WorklogModal({
       setStartTime(editWorklog.startTime);
       setEndTime(editWorklog.endTime);
       setDate(editWorklog.date);
+
+      const matchedEditCat = editWorklog.category
+        ? categories.find(
+            (c) =>
+              c.key === editWorklog.category ||
+              c.key.toLowerCase() === editWorklog.category?.toLowerCase()
+          )
+        : undefined;
+      if (editWorklog.taskId !== undefined) {
+        setTaskId(editWorklog.taskId);
+        setTaskTitle(editWorklog.taskTitle ?? '');
+      } else if (!editWorklog.sdpPosted && matchedEditCat?.defaultTaskId) {
+        setTaskId(matchedEditCat.defaultTaskId);
+        setTaskTitle(matchedEditCat.defaultTaskTitle ?? '');
+      } else {
+        setTaskId('');
+        setTaskTitle('');
+      }
     } else {
       setDescription(initialData?.description ?? '');
       // Default to empty string ("— Select Project —") rather than defaulting to first ticket (GCASH)
@@ -104,6 +143,8 @@ export default function WorklogModal({
         : undefined;
       setTicketId(initialData?.ticketId ?? matchedCat?.ticketId ?? '');
       setUrlTicketId(initialData?.urlTicketId ?? matchedCat?.urlTicketId ?? '');
+      setTaskId(initialData?.taskId ?? matchedCat?.defaultTaskId ?? '');
+      setTaskTitle(initialData?.taskTitle ?? matchedCat?.defaultTaskTitle ?? '');
 
       setWorklogType(initialData?.worklogType ?? 'Coding');
       setStartTime(initialData?.startTime ?? 540);
@@ -115,13 +156,17 @@ export default function WorklogModal({
   const handleCategoryChange = (newCat: string) => {
     setCategory(newCat);
     setProjectError(false);
-    // Auto-fill ticket ID & URL ticket ID for the selected category/project, or clear if unselected
+    // Auto-fill ticket ID, URL ticket ID & default Change Task for the selected category/project, or clear if unselected
     const matchedCat = categories.find(
       (c) => c.key === newCat || c.key.toLowerCase() === newCat.toLowerCase()
     );
     setTicketId(matchedCat?.ticketId ?? '');
     setUrlTicketId(matchedCat?.urlTicketId ?? '');
+    setTaskId(matchedCat?.defaultTaskId ?? '');
+    setTaskTitle(matchedCat?.defaultTaskTitle ?? '');
   };
+
+  const isChTicket = ticketId.trim().toUpperCase().startsWith('CH-');
 
   const bumpTime = useCallback(
     (field: 'start' | 'end', delta: number) => {
@@ -146,6 +191,8 @@ export default function WorklogModal({
     setProjectError(false);
     // Title is automatically replaced by Category/Project name
     const finalTitle = finalCategory;
+    const effectiveTaskId = isChTicket ? taskId.trim() : '';
+    const effectiveTaskTitle = isChTicket && effectiveTaskId ? taskTitle.trim() : '';
 
     onSave({
       date,
@@ -155,6 +202,8 @@ export default function WorklogModal({
       description: description.trim(),
       ticketId: ticketId.trim(),
       urlTicketId: urlTicketId.trim(),
+      taskId: effectiveTaskId,
+      taskTitle: effectiveTaskTitle,
       category: finalCategory,
       worklogType,
     });
@@ -338,7 +387,14 @@ export default function WorklogModal({
                     <input
                       type="text"
                       value={ticketId}
-                      onChange={(e) => setTicketId(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTicketId(val);
+                        if (!val.trim().toUpperCase().startsWith('CH-')) {
+                          setTaskId('');
+                          setTaskTitle('');
+                        }
+                      }}
                       placeholder="Display # (CH-4233)"
                       className="px-3 py-2 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-xs font-mono font-semibold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all shadow-xs"
                       style={{ borderColor: `${catColor}50` }}
@@ -348,7 +404,14 @@ export default function WorklogModal({
                       <input
                         type="text"
                         value={urlTicketId}
-                        onChange={(e) => setUrlTicketId(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val.trim() !== urlTicketId.trim()) {
+                            setTaskId('');
+                            setTaskTitle('');
+                          }
+                          setUrlTicketId(val);
+                        }}
                         placeholder="URL ID (108026...)"
                         className="w-full px-3 py-2 pr-8 rounded-xl bg-surface-800 dark:bg-surface-700 border border-surface-400/80 dark:border-surface-500 text-xs font-mono font-semibold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 transition-all shadow-xs"
                         style={{ borderColor: `${catColor}50` }}
@@ -368,6 +431,44 @@ export default function WorklogModal({
                     </div>
                   </div>
                 </div>
+
+                {/* Change Task Selector (only shown for CH- tickets) */}
+                {isChTicket && (
+                  <div className="flex items-center border-b border-surface-700/50 py-3">
+                    <label className="text-xs font-semibold text-text-secondary w-[140px] shrink-0 flex items-center gap-1.5">
+                      <ListTodo size={12} />
+                      Change Task
+                    </label>
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                      <div className="flex-1 min-w-0">
+                        <ChangeTaskSelector
+                          urlTicketId={urlTicketId}
+                          sdpConfig={sdpConfig}
+                          taskId={taskId}
+                          taskTitle={taskTitle}
+                          onChange={(newTaskId, newTaskTitle) => {
+                            setTaskId(newTaskId);
+                            setTaskTitle(newTaskTitle);
+                          }}
+                          accentColor={catColor}
+                          autoFetch={true}
+                        />
+                      </div>
+                      {taskId.trim() && (
+                        <a
+                          href={`https://servicedeskplus.smretailinc.com/app/itdesk/ui/tasks/${taskId.trim()}/details?selectTab=worklog`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-surface-800 dark:bg-surface-700/70 border border-surface-400/80 dark:border-surface-500 text-accent-500 hover:text-accent-400 hover:border-accent-500/60 transition-all shrink-0 shadow-xs"
+                          style={{ borderColor: `${catColor}50` }}
+                          title="Open Task Worklogs in Manage Engine"
+                        >
+                          <ExternalLink size={13} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Executed Time */}
                 <div className="flex items-center border-b border-surface-700/50 py-3">
@@ -500,9 +601,24 @@ export default function WorklogModal({
                       <button
                         type="button"
                         onClick={async () => {
+                          const finalCategory = category.trim() || editWorklog.category || '';
+                          const effectiveTaskId = isChTicket ? taskId.trim() : '';
+                          const effectiveTaskTitle = isChTicket && effectiveTaskId ? taskTitle.trim() : '';
                           setIsPosting(true);
                           try {
-                            await onPostToSdp();
+                            await onPostToSdp({
+                              date,
+                              startTime,
+                              endTime,
+                              title: finalCategory || editWorklog.title,
+                              description: description.trim(),
+                              ticketId: ticketId.trim(),
+                              urlTicketId: urlTicketId.trim(),
+                              taskId: effectiveTaskId,
+                              taskTitle: effectiveTaskTitle,
+                              category: finalCategory,
+                              worklogType,
+                            });
                           } finally {
                             setIsPosting(false);
                           }

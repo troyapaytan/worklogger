@@ -85,6 +85,7 @@ export async function postWorklogToSdp(
     worklogType: string;
     ticketId: string;
     urlTicketId: string;
+    taskId?: string;
   },
   sdpConfig: SdpConfig,
   ownerId?: string
@@ -99,9 +100,15 @@ export async function postWorklogToSdp(
 
     const ticketType = detectTicketType(worklog.ticketId);
     const endpoint = ticketType === 'CH' ? 'changes' : 'requests';
-    
-    // e.g. https://servicedeskplus.smretailinc.com/api/v3/changes/108026001133988859/worklogs
-    const sdpUrl = `https://servicedeskplus.smretailinc.com/api/v3/${endpoint}/${worklog.urlTicketId}/worklogs`;
+    const cleanUrlTicketId = worklog.urlTicketId.trim();
+    const cleanTaskId = worklog.taskId?.trim();
+
+    // e.g. https://servicedeskplus.smretailinc.com/api/v3/changes/108026001133988859/tasks/108026001228664467/worklogs
+    // or   https://servicedeskplus.smretailinc.com/api/v3/changes/108026001133988859/worklogs
+    const sdpUrl =
+      ticketType === 'CH' && cleanTaskId
+        ? `https://servicedeskplus.smretailinc.com/api/v3/changes/${cleanUrlTicketId}/tasks/${cleanTaskId}/worklogs`
+        : `https://servicedeskplus.smretailinc.com/api/v3/${endpoint}/${cleanUrlTicketId}/worklogs`;
     
     const payload = buildSdpWorklogPayload(worklog, sdpConfig, ownerId);
 
@@ -123,8 +130,11 @@ export async function postWorklogToSdp(
       let errorMsg = `Server returned ${res.status}`;
       try {
         const json = JSON.parse(text);
-        if (json.response_status?.messages?.[0]?.message) {
-          errorMsg = json.response_status.messages[0].message;
+        const msg =
+          json.response_status?.messages?.[0]?.message ||
+          json.response_status?.[0]?.messages?.[0]?.message;
+        if (msg) {
+          errorMsg = msg;
         } else {
           errorMsg = text;
         }
@@ -137,8 +147,11 @@ export async function postWorklogToSdp(
     const data = await res.json();
     
     // Check if Manage Engine API returned a logical error even with 200 OK
-    if (data.response_status?.status === 'failed') {
-       const msg = data.response_status.messages?.[0]?.message || 'Manage Engine API returned failure status';
+    if (data.response_status?.status === 'failed' || data.response_status?.[0]?.status === 'failed') {
+       const msg =
+         data.response_status?.messages?.[0]?.message ||
+         data.response_status?.[0]?.messages?.[0]?.message ||
+         'Manage Engine API returned failure status';
        throw new Error(msg);
     }
     
@@ -562,5 +575,226 @@ export async function fetchMyAssignedTickets(
 
   } catch (e: any) {
     return { error: e.message || 'Failed to fetch assigned tickets' };
+  }
+}
+
+export interface SdpChangeTask {
+  id: string;
+  title: string;
+  index?: number;
+  status?: string;
+  statusColor?: string;
+  inProgress?: boolean;
+  changeStage?: string;
+  stageIndex?: number;
+  ownerId?: string;
+  ownerName?: string;
+  groupName?: string;
+  taskType?: string;
+  percentageCompletion?: number;
+}
+
+export function formatChangeTaskLabel(task: Pick<SdpChangeTask, 'title' | 'changeStage'>): string {
+  const title = task.title?.trim() || 'Untitled Task';
+  const stage = task.changeStage?.trim();
+  return stage ? `${title} [${stage}]` : title;
+}
+
+export function isTaskOwnedByUser(
+  task: Pick<SdpChangeTask, 'ownerId' | 'ownerName'>,
+  sdpConfig?: SdpConfig
+): boolean {
+  const currentOwnerId = sdpConfig?.ownerId?.trim() || '';
+  if (currentOwnerId && task.ownerId) {
+    return task.ownerId.trim() === currentOwnerId;
+  }
+  const currentOwnerName = sdpConfig?.ownerName?.trim().toLowerCase() || '';
+  if (currentOwnerName && task.ownerName) {
+    return task.ownerName.trim().toLowerCase() === currentOwnerName;
+  }
+  return false;
+}
+
+const CHANGE_TASKS_CACHE_TTL_MS = 5 * 60 * 1000;
+const changeTasksCache = new Map<string, { tasks: SdpChangeTask[]; fetchedAt: number }>();
+
+export function clearChangeTasksCache(urlTicketId?: string): void {
+  if (urlTicketId) {
+    changeTasksCache.delete(urlTicketId.trim());
+  } else {
+    changeTasksCache.clear();
+  }
+}
+
+export async function fetchChangeTasks(
+  urlTicketId: string,
+  sdpConfig: SdpConfig,
+  forceRefresh = false
+): Promise<{ tasks?: SdpChangeTask[]; error?: string }> {
+  try {
+    const cleanChangeId = urlTicketId?.trim();
+    if (!cleanChangeId) {
+      return { error: 'Change URL Ticket ID is required to load tasks.' };
+    }
+    if (!sdpConfig?.cookieString) {
+      return { error: 'Manage Engine authentication is not configured. Please set cookies in Manage Engine Settings.' };
+    }
+
+    if (!forceRefresh) {
+      const cached = changeTasksCache.get(cleanChangeId);
+      if (cached && Date.now() - cached.fetchedAt < CHANGE_TASKS_CACHE_TTL_MS) {
+        return { tasks: cached.tasks };
+      }
+    }
+
+    const rowCount = 100;
+    const maxPages = 5;
+    let startIndex = 1;
+    const allRawTasks: any[] = [];
+
+    for (let page = 0; page < maxPages; page++) {
+      const inputData = {
+        list_info: {
+          row_count: String(rowCount),
+          start_index: startIndex,
+          fields_required: [
+            "status",
+            "priority",
+            "owner",
+            "scheduled_end_time",
+            "index",
+            "description",
+            "group",
+            "site",
+            "title",
+            "associated_entity",
+            "associated_entity_title",
+            "module",
+            "percentage_completion",
+            "milestone",
+            "change_stage",
+            "release_stage",
+            "overdue",
+            "marked_technician"
+          ],
+          get_total_count: false,
+          filter_by: { id: "0" },
+          sort_fields: [{ field: "index", order: "asc" }]
+        }
+      };
+
+      const sdpUrl = `https://servicedeskplus.smretailinc.com/api/v3/changes/${cleanChangeId}/tasks?input_data=${encodeURIComponent(JSON.stringify(inputData))}`;
+
+      const res = await fetch('/api/sdp/fetch-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: sdpUrl,
+          cookies: sdpConfig.cookieString,
+          csrfToken: sdpConfig.csrfToken,
+          appId: sdpConfig.appId || '696655712',
+          nonce: generateNonce()
+        })
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        let errorMsg = `Server returned ${res.status}`;
+        try {
+          const errJson = JSON.parse(text);
+          const msg =
+            errJson.response_status?.messages?.[0]?.message ||
+            errJson.response_status?.[0]?.messages?.[0]?.message;
+          if (msg) errorMsg = msg;
+        } catch {
+          // keep fallback status error
+        }
+        throw new Error(errorMsg);
+      }
+
+      const json = await res.json();
+
+      if (json.response_status?.status === 'failed' || json.response_status?.[0]?.status === 'failed') {
+        const msg =
+          json.response_status?.messages?.[0]?.message ||
+          json.response_status?.[0]?.messages?.[0]?.message ||
+          'Failed to fetch change tasks from Manage Engine';
+        throw new Error(msg);
+      }
+
+      const pageTasks = Array.isArray(json.tasks) ? json.tasks : [];
+      allRawTasks.push(...pageTasks);
+
+      const hasMore =
+        json.list_info?.has_more_rows === true ||
+        json.list_info?.has_more_rows === 'true';
+
+      if (!hasMore || pageTasks.length === 0) {
+        break;
+      }
+      startIndex += pageTasks.length;
+    }
+
+    const seenIds = new Set<string>();
+    const tasks: SdpChangeTask[] = [];
+
+    for (const t of allRawTasks) {
+      if (!t || !t.id || t.deleted === true) continue;
+      const idStr = String(t.id);
+      if (seenIds.has(idStr)) continue;
+      seenIds.add(idStr);
+
+      const ownerObj = t.owner || t.marked_technician;
+      const groupObj = t.group || t.marked_group;
+
+      tasks.push({
+        id: idStr,
+        title: String(t.title || t.statement?.name || `Task #${idStr}`).trim(),
+        index:
+          typeof t.index === 'number'
+            ? t.index
+            : t.index != null && !isNaN(Number(t.index))
+              ? Number(t.index)
+              : undefined,
+        status:
+          typeof t.status === 'object'
+            ? (t.status?.name || t.status?.internal_name || undefined)
+            : (t.status || undefined),
+        statusColor:
+          typeof t.status === 'object' ? (t.status?.color || undefined) : undefined,
+        inProgress:
+          typeof t.status === 'object' ? Boolean(t.status?.in_progress) : undefined,
+        changeStage:
+          typeof t.change_stage === 'object'
+            ? (t.change_stage?.name || t.change_stage?.internal_name || undefined)
+            : (t.change_stage || undefined),
+        stageIndex:
+          typeof t.change_stage === 'object' && typeof t.change_stage?.stage_index === 'number'
+            ? t.change_stage.stage_index
+            : undefined,
+        ownerId: ownerObj?.id ? String(ownerObj.id) : undefined,
+        ownerName: ownerObj?.name ? String(ownerObj.name) : undefined,
+        groupName: groupObj?.name ? String(groupObj.name) : undefined,
+        taskType:
+          typeof t.task_type === 'object' ? (t.task_type?.name || undefined) : undefined,
+        percentageCompletion:
+          typeof t.percentage_completion === 'number' ? t.percentage_completion : undefined,
+      });
+    }
+
+    tasks.sort((a, b) => {
+      const stageDiff = (a.stageIndex ?? 999) - (b.stageIndex ?? 999);
+      if (stageDiff !== 0) return stageDiff;
+      return (a.index ?? 999) - (b.index ?? 999);
+    });
+
+    changeTasksCache.set(cleanChangeId, {
+      tasks,
+      fetchedAt: Date.now(),
+    });
+
+    return { tasks };
+  } catch (e: any) {
+    return { error: e instanceof Error ? e.message : (e?.message || 'Failed to fetch change tasks') };
   }
 }
